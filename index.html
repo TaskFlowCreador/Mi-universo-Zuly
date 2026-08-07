@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuestro rincón · Zuleyka 💗</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Parisienne&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rosa-deep:#22040f;
+    --rosa-mid:#5c1636;
+    --rosa-glow:#ff4f81;
+    --rosa-soft:#ffaecb;
+    --rosa-blush:#ffe3ee;
+    --rosa-fuchsia:#e0326b;
+    --rosa-coral:#ff8577;
+    --rosa-rosegold:#e8b4b8;
+    --rosa-magenta:#c2185b;
+    --gold-warm:#ffd7a8;
+  }
+  body{font-family:'Plus Jakarta Sans',sans-serif;
+    background:radial-gradient(circle at 18% 12%,rgba(255,79,129,0.22) 0%,transparent 45%),
+               radial-gradient(circle at 88% 88%,rgba(224,50,107,0.28) 0%,transparent 50%),
+               radial-gradient(circle at center,var(--rosa-deep) 0%,#0b0104 100%);
+    overflow-x:hidden;}
+  .font-serif{font-family:'Playfair Display',serif;}
+  .font-script{font-family:'Parisienne',cursive;}
+  .lyrics-scroll::-webkit-scrollbar{width:4px;}
+  .lyrics-scroll::-webkit-scrollbar-track{background:transparent;}
+  .lyrics-scroll::-webkit-scrollbar-thumb{background:rgba(255,174,203,0.35);border-radius:10px;}
+  .lyrics-container{position:relative;
+    mask-image:linear-gradient(to bottom,transparent,white 15%,white 85%,transparent);
+    -webkit-mask-image:linear-gradient(to bottom,transparent,white 15%,white 85%,transparent);}
+  .envelope-wrapper{perspective:1000px;}
+  .envelope{position:relative;transform-style:preserve-3d;transition:transform 1s ease;}
+  .letter{transform:translateY(0px) scale(0.95);opacity:0;pointer-events:none;
+    transition:transform 1s cubic-bezier(0.34,1.56,0.64,1) 0.5s, opacity .8s ease .5s;z-index:10;}
+  #envelope-container.open .letter{transform:translateY(-145px) scale(1.05);opacity:1;pointer-events:auto;z-index:50;}
+  #envelope-container.open #flap{transform:rotateX(180deg);z-index:5;}
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .spinning{animation:spin 18s linear infinite;}
+  .paused-spin{animation-play-state:paused;}
+  .lyric-line{transition:all .4s ease;opacity:.35;transform:scale(.95);}
+  .lyric-line.active{transform:scale(1.04);opacity:1;}
+  .paint-text{background-image:linear-gradient(to right,var(--rosa-soft) var(--paint-progress,0%),rgba(255,255,255,0.3) var(--paint-progress,0%));
+    -webkit-background-clip:text;background-clip:text;color:transparent;display:inline;}
+  @keyframes pulse-soft{0%,100%{transform:scale(1);opacity:.9;}50%{transform:scale(1.06);opacity:1;filter:drop-shadow(0 0 12px rgba(255,79,129,.7));}}
+  .pulse-heart{animation:pulse-soft 1.6s infinite ease-in-out;}
+  @keyframes eq-pulse{0%,100%{height:4px;}50%{height:16px;}}
+  .eq-bar-1{animation:eq-pulse .6s infinite ease-in-out alternate;}
+  .eq-bar-2{animation:eq-pulse .8s infinite ease-in-out alternate .15s;}
+  .eq-bar-3{animation:eq-pulse .5s infinite ease-in-out alternate .3s;}
+  @keyframes float-in{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  .fade-up{animation:float-in .6s cubic-bezier(0.16,1,0.3,1) both;}
+  #note-modal{transition:opacity .4s ease;}
+  #note-card{transition:transform .5s cubic-bezier(0.34,1.56,0.64,1), opacity .4s ease;}
+  .typewrite{border-right:2px solid var(--rosa-soft);white-space:pre-wrap;overflow:hidden;}
+  input[type=range]{accent-color:var(--rosa-glow);}
+  *:focus-visible{outline:2px solid var(--rosa-soft);outline-offset:2px;border-radius:6px;}
+  @media (prefers-reduced-motion: reduce){
+    .spinning,.pulse-heart,.eq-bar-1,.eq-bar-2,.eq-bar-3,.fade-up{animation:none !important;}
+    .letter,#flap,.lyric-line,#note-card{transition:none !important;}
+  }
+</style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-white relative">
+
+<canvas id="heartCanvas" class="absolute inset-0 pointer-events-auto z-0"></canvas>
+
+<header class="w-full text-center py-6 px-6 z-10 select-none">
+  <p class="text-xs uppercase tracking-[0.3em] text-pink-200/80 font-semibold">Un pedacito de tiempo, solo para</p>
+  <p class="font-script text-3xl sm:text-4xl mt-1" style="color:var(--rosa-soft)">Zuleyka</p>
+  <p id="days-counter" class="text-[11px] text-pink-200/50 mt-1 tracking-wide"></p>
+</header>
+
+<main class="flex-grow flex items-center justify-center px-4 md:px-8 z-10 w-full max-w-6xl mx-auto my-6">
+
+  <!-- ===== PANTALLA 1: SOBRE Y CARTA ===== -->
+  <div id="letter-screen" class="w-full flex flex-col items-center justify-center transition-all duration-700">
+    <p id="hint-text" class="text-pink-200/80 text-sm mb-6 font-serif animate-pulse text-center">Toca el corazón para abrir tu sorpresa...</p>
+
+    <div class="relative w-[320px] h-[300px] flex items-center justify-center select-none">
+      <div id="envelope-container" class="relative w-[320px] h-[220px]">
+        <div class="absolute bottom-0 left-0 w-full h-[180px] rounded-b-2xl z-0 shadow-2xl" style="background:var(--rosa-mid)"></div>
+
+        <div id="paper-letter" class="letter absolute bottom-2 left-4 right-4 bg-pink-50 text-gray-800 p-5 rounded-lg shadow-lg flex flex-col justify-between h-[230px]">
+          <div class="text-center font-serif flex-grow flex flex-col justify-center px-1">
+            <h2 class="text-lg font-bold mb-1" style="color:var(--rosa-fuchsia)">Para ti, mi Zuleyka 💗</h2>
+            <p class="text-xs sm:text-sm text-gray-700 italic leading-relaxed max-h-[130px] overflow-y-auto px-1 font-semibold mt-3">
+              Cada vez que abras este lugar, estarás abriendo un pedacito de mí. Aquí guardo nuestras canciones, las que nos recuerdan por qué te amo. Este rincón de internet, en medio de todo el espacio y el tiempo que existe, es tuyo. Solo tuyo.
+            </p>
+          </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 w-full h-[180px] rounded-b-2xl z-20 border-t border-pink-800/30" style="background:#4a1029">
+          <div class="absolute bottom-0 left-0 w-0 h-0 border-b-[180px] border-r-[160px] border-r-transparent rounded-bl-2xl" style="border-bottom-color:rgba(74,16,41,0.9)"></div>
+          <div class="absolute bottom-0 right-0 w-0 h-0 border-b-[180px] border-l-[160px] border-l-transparent rounded-br-2xl" style="border-bottom-color:rgba(74,16,41,0.9)"></div>
+        </div>
+
+        <div id="flap" class="absolute top-[40px] left-0 w-full h-[110px] origin-top transition-transform duration-700 ease-in-out z-30" style="clip-path:polygon(0 0,100% 0,50% 100%);background:#3d0c22"></div>
+
+        <!-- Sello de corazón -->
+        <div id="wax-seal" class="absolute bottom-[50px] left-1/2 transform -translate-x-1/2 z-40 cursor-pointer flex flex-col items-center group transition-all duration-300">
+          <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-2 pulse-heart transform group-hover:scale-110 transition-transform" style="background:linear-gradient(to bottom right,#ff8fb3,var(--rosa-glow),#7a1039);border-color:#ffcede">
+            <span class="text-2xl">💗</span>
+          </div>
+          <span class="text-[9px] mt-1.5 font-bold tracking-widest text-white drop-shadow-md bg-black/50 px-2 py-0.5 rounded-full select-none uppercase">Abrir</span>
+        </div>
+      </div>
+    </div>
+
+    <button id="btn-goto-music" class="hidden mt-6 text-white font-semibold py-3.5 px-8 rounded-full shadow-lg active:scale-95 transition-all z-20 flex items-center gap-2 tracking-wide text-sm animate-bounce" style="background:linear-gradient(to right,var(--rosa-glow),var(--rosa-fuchsia))">
+      Entrar a nuestro rincón 💕
+    </button>
+  </div>
+
+  <!-- ===== PANTALLA 2: REPRODUCTOR ===== -->
+  <div id="player-screen" class="hidden w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center transition-all duration-1000 opacity-0 transform translate-y-8">
+
+    <div class="lg:col-span-5 flex flex-col items-center bg-black/35 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+      <div class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full border" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="w-2 h-2 rounded-full animate-ping" style="background:var(--rosa-soft)"></span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest" style="color:var(--rosa-blush)">Nuestras 5 canciones</span>
+      </div>
+
+      <button id="btn-open-note" title="Nuestro mensaje" class="absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center border transition-all hover:scale-110 active:scale-95" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="text-lg">💌</span>
+      </button>
+
+      <div class="relative w-48 h-48 sm:w-56 sm:h-56 my-4 select-none group">
+        <div id="vinyl-aura" class="absolute inset-0 rounded-full blur-xl transition-all duration-1000 scale-95" style="background:linear-gradient(to top right,rgba(255,79,129,0.25),rgba(224,50,107,0.25))"></div>
+        <div id="vinyl-disc" class="spinning paused-spin w-full h-full rounded-full p-2 shadow-[0_0_40px_rgba(0,0,0,0.8)] relative border border-neutral-800 flex items-center justify-center cursor-pointer transition-all duration-700" style="background:radial-gradient(circle, var(--rosa-glow) 0%, #2a0714 100%)">
+          <div class="absolute inset-4 rounded-full border border-neutral-800/40"></div>
+          <div class="absolute inset-8 rounded-full border border-neutral-700/20"></div>
+          <div class="absolute inset-12 rounded-full border border-neutral-800/50"></div>
+          <div class="absolute inset-16 rounded-full border border-neutral-700/10"></div>
+          <div id="vinyl-center" class="w-[42%] h-[42%] rounded-full overflow-hidden relative flex items-center justify-center border-2 border-neutral-900 transition-all duration-500" style="background:linear-gradient(to top right,var(--rosa-glow),var(--rosa-fuchsia))">
+            <span id="vinyl-emoji" class="text-3xl filter drop-shadow">💗</span>
+            <div class="absolute w-4 h-4 bg-neutral-950 rounded-full border border-white/10 shadow-inner"></div>
+          </div>
+        </div>
+        <div id="needle-arm" class="absolute -top-4 right-1 transform origin-top-right rotate-[-20deg] transition-transform duration-1000 w-14 h-32 pointer-events-none drop-shadow-xl z-20">
+          <svg class="w-full h-full" viewBox="0 0 100 200" fill="none">
+            <circle cx="80" cy="20" r="12" fill="#4b5563"/><circle cx="80" cy="20" r="6" fill="#9ca3af"/>
+            <path d="M80 20 L40 160 L28 175" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <rect x="18" y="170" width="20" height="12" rx="2" transform="rotate(15 28 175)" fill="#374151"/>
+            <rect x="15" y="174" width="8" height="6" rx="1" transform="rotate(15 28 175)" fill="#ffaecb"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="text-center w-full px-4 select-none">
+        <h3 id="track-title" class="text-base sm:text-lg font-serif font-bold tracking-wide truncate" style="color:var(--rosa-soft)">-</h3>
+        <p id="track-artist" class="text-xs text-white/60 mt-0.5">-</p>
+        <p id="audio-status" class="hidden text-[11px] mt-1.5 px-3 py-1 rounded-full inline-block" style="background:rgba(255,79,129,0.18);color:var(--rosa-blush)"></p>
+      </div>
+
+      <div class="w-full px-2 mt-4">
+        <div class="flex items-center justify-between text-[10px] text-gray-400 font-mono mb-1 select-none">
+          <span id="time-current">0:00</span><span id="time-total">0:00</span>
+        </div>
+        <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-full bg-white/10 rounded-lg h-1.5 appearance-none cursor-pointer focus:outline-none focus:ring-0">
+      </div>
+
+      <div class="flex items-center gap-5 mt-4">
+        <button id="btn-rewind" class="p-2.5 rounded-full hover:bg-white/5 active:scale-95 text-gray-300 hover:text-white transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
+        <button id="btn-play-pause" class="p-4 rounded-full hover:scale-105 active:scale-95 shadow-lg transition-all" style="background:linear-gradient(to bottom right,var(--rosa-glow),var(--rosa-fuchsia));box-shadow:0 10px 25px -5px rgba(224,50,107,0.5)">
+          <svg id="play-icon" class="w-6 h-6" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pause-icon" class="w-6 h-6 hidden" fill="white" viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </button>
+        <button id="btn-forward" class="p-2.5 rounded-full hover:bg-white/5 active:scale-95 text-gray-300 hover:text-white transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 6v12l8.5-6z"/></svg>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2 mt-4 w-full px-2">
+        <button id="btn-mute" class="text-gray-300 hover:text-white">
+          <svg id="volume-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg>
+          <svg id="mute-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12 21 7.5l-1.5-1.5-4.5 4.5-4.5-4.5L9 7.5l4.5 4.5L9 16.5 10.5 18l4.5-4.5 4.5 4.5 1.5-1.5z"/></svg>
+        </button>
+        <input type="range" id="volume-bar" min="0" max="100" value="80" class="w-full h-1 rounded-lg appearance-none cursor-pointer">
+      </div>
+
+      <div id="playlist-container" class="w-full mt-5 flex flex-col gap-1.5"></div>
+    </div>
+
+    <!-- LETRA -->
+    <div class="lg:col-span-7 flex flex-col bg-black/35 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl h-[420px] sm:h-[480px] relative">
+      <div class="flex items-center justify-center mb-2 select-none">
+        <p class="text-xs uppercase tracking-[0.25em] font-semibold" style="color:rgba(255,174,203,0.85)">Letra</p>
+      </div>
+      <div class="lyrics-container flex-grow overflow-y-auto lyrics-scroll">
+        <div id="lyrics-window" class="flex flex-col justify-center min-h-full py-10"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== MODAL: NUESTRO MENSAJE (accesible en cualquier momento) ===== -->
+<div id="note-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-5 opacity-0" style="background:rgba(10,2,6,0.75);backdrop-filter:blur(6px)">
+  <div id="note-card" class="relative w-full max-w-sm bg-pink-50 text-gray-800 rounded-2xl shadow-2xl p-6 opacity-0 scale-90 font-serif">
+    <button id="btn-close-note" class="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-black/5 transition-all">✕</button>
+    <p class="text-center text-2xl mb-2">💗</p>
+    <h3 class="text-center text-lg font-bold mb-3" style="color:var(--rosa-fuchsia)">Para mi Zuleyka</h3>
+    <p id="note-text" class="text-sm leading-relaxed italic text-gray-700 min-h-[160px]"></p>
+    <p class="text-right font-script text-2xl mt-3" style="color:var(--rosa-fuchsia)">Te amo 💕</p>
+  </div>
+</div>
+
+<!-- ===== EDITOR DE SINCRONIZACIÓN DE LETRA (solo visible con ?editor en la URL) ===== -->
+<button id="btn-editor-toggle" class="fixed bottom-4 right-4 z-[90] text-xs font-semibold px-3 py-2 rounded-full shadow-lg border opacity-60 hover:opacity-100 transition-opacity" style="background:rgba(34,4,15,0.9);border-color:rgba(255,79,129,0.4);color:var(--rosa-soft)">
+  🎼
+</button>
+
+<div id="editor-panel" class="hidden fixed inset-0 z-[110] flex items-end sm:items-center justify-center px-3 py-3" style="background:rgba(10,2,6,0.85);backdrop-filter:blur(6px)">
+  <div class="w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#150208] border rounded-2xl shadow-2xl p-5 text-sm" style="border-color:rgba(255,79,129,0.25)">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-serif text-lg font-bold" style="color:var(--rosa-soft)">🎤 Editor de sincronización</h3>
+      <button id="btn-editor-close" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-white/70">✕</button>
+    </div>
+
+    <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1">Canción</label>
+    <select id="editor-track-select" class="w-full mb-4 bg-black/40 border rounded-lg px-3 py-2 text-white" style="border-color:rgba(255,79,129,0.25)"></select>
+
+    <div id="editor-step-paste">
+      <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1">Pega la letra (una línea por renglón)</label>
+      <textarea id="editor-lyrics-input" rows="8" class="w-full bg-black/40 border rounded-lg px-3 py-2 text-white mb-3 leading-relaxed" style="border-color:rgba(255,79,129,0.25)" placeholder="Línea 1 de la canción&#10;Línea 2 de la canción&#10;..."></textarea>
+      <button id="btn-editor-load" class="w-full py-2.5 rounded-full font-semibold text-white" style="background:linear-gradient(to right,var(--rosa-glow),var(--rosa-fuchsia))">Cargar líneas y empezar a marcar tiempos</button>
+    </div>
+
+    <div id="editor-step-sync" class="hidden">
+      <div class="flex items-center gap-3 mb-3">
+        <button id="editor-play-pause" class="px-4 py-2 rounded-full text-white font-semibold text-xs" style="background:linear-gradient(to right,var(--rosa-glow),var(--rosa-fuchsia))">▶ Reproducir</button>
+        <span id="editor-current-time" class="text-xs font-mono text-white/60">0:00</span>
+        <button id="editor-undo" class="ml-auto text-xs text-white/50 hover:text-white underline">Deshacer última marca</button>
+      </div>
+
+      <p class="text-[11px] text-white/50 mb-2">Toca <strong>«Marcar línea»</strong> justo cuando empiece a sonar cada línea resaltada. Se anota el tiempo automáticamente y pasa a la siguiente.</p>
+
+      <button id="editor-mark-line" class="w-full py-3.5 rounded-full font-bold text-white text-base mb-3 active:scale-95 transition-all" style="background:linear-gradient(to right,var(--rosa-fuchsia),var(--rosa-glow))">💗 Marcar línea actual</button>
+
+      <div id="editor-lines-list" class="flex flex-col gap-1 max-h-[220px] overflow-y-auto mb-3 pr-1"></div>
+
+      <button id="btn-editor-generate" class="w-full py-2.5 rounded-full font-semibold text-white mb-3" style="background:rgba(255,79,129,0.25);border:1px solid rgba(255,79,129,0.4)">Finalizar y generar código</button>
+
+      <div id="editor-output-wrap" class="hidden">
+        <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1">Copia este código y pásamelo</label>
+        <textarea id="editor-output" rows="8" readonly class="w-full bg-black/60 border rounded-lg px-3 py-2 text-pink-100 text-[11px] font-mono mb-2" style="border-color:rgba(255,79,129,0.25)"></textarea>
+        <button id="btn-editor-copy" class="w-full py-2 rounded-full text-xs font-semibold text-white" style="background:rgba(255,79,129,0.25);border:1px solid rgba(255,79,129,0.4)">Copiar código</button>
+      </div>
+
+      <button id="btn-editor-preview" class="w-full py-2.5 rounded-full font-semibold text-xs mt-3 text-white/80 border border-white/15 hover:bg-white/5">Probar esta letra en el karaoke (sin guardar)</button>
+    </div>
+  </div>
+</div>
+
+<audio id="audio-track" preload="metadata"></audio>
+
+<script>
+// =====================================================================
+// EDITA AQUÍ: si quieres que aparezca un contador de días, pon su fecha
+// de inicio en formato 'AAAA-MM-DD'. Si la dejas vacía (''), el contador
+// simplemente no se muestra.
+// =====================================================================
+const START_DATE = ''; // ej: '2023-05-14'
+
+if (START_DATE) {
+  const start = new Date(START_DATE + 'T00:00:00');
+  const days = Math.floor((new Date() - start) / 86400000);
+  if (!isNaN(days) && days >= 0) {
+    document.getElementById('days-counter').textContent = `${days.toLocaleString('es')} días juntos 💗`;
+  }
+}
+
+// =====================================================================
+// EDITA AQUÍ el mensaje del sobre 💌 (botón arriba a la izquierda del
+// reproductor). Se escribe letra por letra al abrirlo.
+// =====================================================================
+const LOVE_NOTE = `Zuleyka, cada vez que entres aquí quiero que sientas lo mismo que siento yo cuando pienso en ti: que existe un lugar, en medio de todo internet, que es solo nuestro. Aquí guardé las canciones que nos representan, las que suenan a nosotros. No importa cuántas veces vuelvas, este rincón te va a estar esperando, con la misma ternura de la primera vez. Gracias por ser mi persona favorita. Te amo.`;
+
+// =================== DATOS DE LAS 5 CANCIONES ===================
+// Para sincronizar la letra de cualquier canción: pásame los tiempos y
+// el texto de cada línea, y yo los agrego aquí con este formato:
+// { start: 12.34, end: 16.02, text: 'Línea de la canción' },
+const tracks = [
+  {
+    id: 0,
+    title: "Perderme Contigo",
+    artist: "Bacilos",
+    src: "audio/1-perderme-contigo.mp3",
+    emoji: "💗",
+    color1: "#ff4f81",
+    color2: "#2a0714", // rosa vivo
+    lyrics: [
+      // Pega aquí la letra sincronizada de "Perderme Contigo"
+    ]
+  },
+  {
+    id: 1,
+    title: "Estoy Enamorado",
+    artist: "Wisin y Yandel",
+    src: "audio/2-estoy-enamorado.mp3",
+    emoji: "💓",
+    color1: "#c2185b",
+    color2: "#3a0a20", // magenta
+    lyrics: [
+      // Pega aquí la letra sincronizada de "Estoy Enamorado"
+    ]
+  },
+  {
+    id: 2,
+    title: "Te Encontré",
+    artist: "El Vega",
+    src: "audio/3-te-encontre.mp3",
+    emoji: "💕",
+    color1: "#ff8577",
+    color2: "#4a1029", // coral rosado
+    lyrics: [
+      // Pega aquí la letra sincronizada de "Te Encontré"
+    ]
+  },
+  {
+    id: 3,
+    title: "Die With A Smile",
+    artist: "Lady Gaga & Bruno Mars",
+    src: "audio/4-die-with-a-smile.mp3",
+    emoji: "💞",
+    color1: "#e8b4b8",
+    color2: "#5c1636", // rosa dorado
+    lyrics: [
+      // Pega aquí la letra sincronizada de "Die With A Smile"
+    ]
+  },
+  {
+    id: 4,
+    title: "Déjame Intentar",
+    artist: "Por confirmar", // dime el artista correcto y lo actualizo
+    src: "audio/5-dejame-intentar.mp3",
+    emoji: "💖",
+    color1: "#ffaecb",
+    color2: "#22040f",
+    lyrics: [
+      // Pega aquí la letra sincronizada de "Déjame Intentar"
+    ]
+  }
+];
+
+let currentTrackIndex = 0;
+let lyricsData = tracks[currentTrackIndex].lyrics;
+let isSeeking = false;
+let isLoopRunning = false;
+let activeLineIndex = -1;
+
+const letterScreen = document.getElementById('letter-screen');
+const playerScreen = document.getElementById('player-screen');
+const waxSeal = document.getElementById('wax-seal');
+const hintText = document.getElementById('hint-text');
+const btnGotoMusic = document.getElementById('btn-goto-music');
+
+const audioTrack = document.getElementById('audio-track');
+const btnPlayPause = document.getElementById('btn-play-pause');
+const playIcon = document.getElementById('play-icon');
+const pauseIcon = document.getElementById('pause-icon');
+const progressBar = document.getElementById('progress-bar');
+const timeCurrent = document.getElementById('time-current');
+const timeTotal = document.getElementById('time-total');
+const volumeBar = document.getElementById('volume-bar');
+const btnMute = document.getElementById('btn-mute');
+const volumeIcon = document.getElementById('volume-icon');
+const muteIcon = document.getElementById('mute-icon');
+
+const vinylDisc = document.getElementById('vinyl-disc');
+const vinylCenter = document.getElementById('vinyl-center');
+const vinylEmoji = document.getElementById('vinyl-emoji');
+const needleArm = document.getElementById('needle-arm');
+const vinylAura = document.getElementById('vinyl-aura');
+const lyricsWindow = document.getElementById('lyrics-window');
+const playlistContainer = document.getElementById('playlist-container');
+const btnRewind = document.getElementById('btn-rewind');
+const btnForward = document.getElementById('btn-forward');
+
+audioTrack.volume = 0.8;
+
+const audioStatus = document.getElementById('audio-status');
+function showAudioStatus(msg) {
+  audioStatus.textContent = msg;
+  audioStatus.classList.remove('hidden');
+}
+function hideAudioStatus() {
+  audioStatus.classList.add('hidden');
+}
+audioTrack.addEventListener('error', () => {
+  const track = tracks[currentTrackIndex];
+  showAudioStatus(`No se encontró el archivo "${track.src}". Revisa que esté en la carpeta audio/ con ese nombre exacto.`);
+});
+
+waxSeal.addEventListener('click', () => {
+  const envContainer = document.getElementById('envelope-container');
+  envContainer.classList.add('open');
+  waxSeal.style.opacity = '0';
+  waxSeal.style.pointerEvents = 'none';
+  hintText.style.opacity = '0';
+  audioTrack.load();
+  setTimeout(() => {
+    btnGotoMusic.classList.remove('hidden');
+    btnGotoMusic.classList.add('flex');
+  }, 1300);
+});
+
+btnGotoMusic.addEventListener('click', () => {
+  renderPlaylist();
+  loadTrack(0, true);
+  letterScreen.classList.add('opacity-0');
+  setTimeout(() => {
+    letterScreen.classList.add('hidden');
+    playerScreen.classList.remove('hidden');
+    playerScreen.clientHeight;
+    playerScreen.classList.remove('opacity-0', 'translate-y-8');
+  }, 800);
+});
+
+function loadTrack(index, autoplay = false) {
+  currentTrackIndex = index;
+  const track = tracks[index];
+
+  audioTrack.src = track.src;
+  audioTrack.load();
+
+  document.getElementById('track-title').textContent = track.title;
+  document.getElementById('track-artist').textContent = track.artist;
+  vinylEmoji.textContent = track.emoji;
+
+  vinylDisc.style.background = `radial-gradient(circle, ${track.color1} 0%, ${track.color2} 100%)`;
+  vinylCenter.style.background = `linear-gradient(to top right, ${track.color1}, ${track.color2})`;
+
+  progressBar.value = 0;
+  timeCurrent.textContent = "0:00";
+  timeTotal.textContent = "0:00";
+
+  lyricsData = track.lyrics;
+  activeLineIndex = -1;
+  initKaraoke();
+  updatePlaylistUI();
+
+  if (autoplay) {
+    playAudio();
+  } else {
+    pauseAudio();
+  }
+}
+
+function renderPlaylist() {
+  playlistContainer.innerHTML = '';
+  tracks.forEach((track, index) => {
+    const item = document.createElement('div');
+    item.className = `playlist-item flex items-center justify-between p-2 rounded-xl cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all duration-300 border border-transparent fade-up`;
+    item.style.animationDelay = `${index * 0.06}s`;
+    item.id = `playlist-item-${index}`;
+    item.innerHTML = `
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-bold select-none w-6 h-6 flex items-center justify-center rounded-full" style="color:var(--rosa-soft);background:rgba(255,79,129,0.12)">${index + 1}</span>
+        <div class="text-left">
+          <p class="text-xs font-bold text-white tracking-wide truncate max-w-[150px] sm:max-w-[180px]">${track.title}</p>
+          <p class="text-[9px] text-white/50 truncate max-w-[150px] sm:max-w-[180px]">${track.artist}</p>
+        </div>
+      </div>
+      <div id="eq-${index}" class="hidden flex items-end gap-[2px] h-4 pr-1">
+        <div class="w-[2.5px] h-1.5 rounded-full eq-bar-1" style="background:var(--rosa-fuchsia)"></div>
+        <div class="w-[2.5px] h-3 rounded-full eq-bar-2" style="background:var(--rosa-soft)"></div>
+        <div class="w-[2.5px] h-2.5 rounded-full eq-bar-3" style="background:var(--rosa-fuchsia)"></div>
+      </div>`;
+    item.addEventListener('click', () => {
+      if (currentTrackIndex !== index) {
+        loadTrack(index, true);
+        spawnBurstHeartsAt(item);
+      } else {
+        audioTrack.paused ? playAudio() : pauseAudio();
+      }
+    });
+    playlistContainer.appendChild(item);
+  });
+}
+
+function updatePlaylistUI() {
+  tracks.forEach((_, index) => {
+    const item = document.getElementById(`playlist-item-${index}`);
+    const eq = document.getElementById(`eq-${index}`);
+    if (item) {
+      if (index === currentTrackIndex) {
+        item.style.background = 'rgba(255,79,129,0.15)';
+        item.style.borderColor = 'rgba(255,79,129,0.3)';
+        item.style.boxShadow = '0 0 15px rgba(255,79,129,0.2)';
+        if (eq && !audioTrack.paused) eq.classList.remove('hidden');
+      } else {
+        item.style.background = '';
+        item.style.borderColor = 'transparent';
+        item.style.boxShadow = '';
+        if (eq) eq.classList.add('hidden');
+      }
+    }
+  });
+}
+
+function formatTime(sec) {
+  if (!sec || isNaN(sec)) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function startLoop() { if (!isLoopRunning) { isLoopRunning = true; tick(); } }
+function stopLoop() { isLoopRunning = false; }
+function tick() {
+  if (!isLoopRunning) return;
+  updateKaraokeAndPainting(audioTrack.currentTime);
+  requestAnimationFrame(tick);
+}
+
+function playAudio() {
+  audioTrack.play().then(() => {
+    hideAudioStatus();
+    playIcon.classList.add('hidden');
+    pauseIcon.classList.remove('hidden');
+    vinylDisc.classList.remove('paused-spin');
+    needleArm.style.transform = 'rotate(15deg)';
+    vinylAura.classList.remove('scale-95');
+    vinylAura.classList.add('scale-105', 'opacity-100');
+    startLoop();
+    updatePlaylistUI();
+  }).catch(e => {
+    console.log("No se pudo reproducir:", e);
+    showAudioStatus('Toca ▶ para escuchar (el navegador bloqueó la reproducción automática).');
+  });
+}
+
+function pauseAudio() {
+  audioTrack.pause();
+  playIcon.classList.remove('hidden');
+  pauseIcon.classList.add('hidden');
+  vinylDisc.classList.add('paused-spin');
+  needleArm.style.transform = 'rotate(-20deg)';
+  vinylAura.classList.remove('scale-105', 'opacity-100');
+  vinylAura.classList.add('scale-95');
+  stopLoop();
+  updatePlaylistUI();
+}
+
+btnPlayPause.addEventListener('click', () => audioTrack.paused ? playAudio() : pauseAudio());
+vinylDisc.addEventListener('click', () => audioTrack.paused ? playAudio() : pauseAudio());
+
+btnRewind.addEventListener('click', () => {
+  let prevIndex = currentTrackIndex - 1;
+  if (prevIndex < 0) prevIndex = tracks.length - 1;
+  loadTrack(prevIndex, true);
+});
+btnForward.addEventListener('click', () => {
+  let nextIndex = currentTrackIndex + 1;
+  if (nextIndex >= tracks.length) nextIndex = 0;
+  loadTrack(nextIndex, true);
+});
+audioTrack.addEventListener('ended', () => {
+  let nextIndex = currentTrackIndex + 1;
+  if (nextIndex >= tracks.length) nextIndex = 0;
+  loadTrack(nextIndex, true);
+});
+audioTrack.addEventListener('timeupdate', () => {
+  if (!isSeeking) {
+    const pct = (audioTrack.currentTime / audioTrack.duration) * 100;
+    progressBar.value = pct || 0;
+  }
+  timeCurrent.textContent = formatTime(audioTrack.currentTime);
+  if (audioTrack.duration) timeTotal.textContent = formatTime(audioTrack.duration);
+});
+progressBar.addEventListener('input', () => { isSeeking = true; });
+progressBar.addEventListener('change', () => {
+  const newTime = (progressBar.value / 100) * audioTrack.duration;
+  audioTrack.currentTime = newTime;
+  isSeeking = false;
+  updateKaraokeAndPainting(newTime);
+});
+volumeBar.addEventListener('input', () => {
+  audioTrack.volume = volumeBar.value / 100;
+  audioTrack.volume === 0 ? muteAudio() : unmuteAudio();
+});
+function muteAudio() { audioTrack.muted = true; volumeIcon.classList.add('hidden'); muteIcon.classList.remove('hidden'); }
+function unmuteAudio() { audioTrack.muted = false; volumeIcon.classList.remove('hidden'); muteIcon.classList.add('hidden'); }
+btnMute.addEventListener('click', () => audioTrack.muted ? unmuteAudio() : muteAudio());
+
+function initKaraoke() {
+  lyricsWindow.innerHTML = '';
+  if (!lyricsData.length) {
+    lyricsWindow.innerHTML = `<p class="text-center text-white/40 text-sm italic px-8 leading-relaxed">
+      La letra de esta canción está por llegar...<br>pronto la sincronizamos juntos 💗
+    </p>`;
+    return;
+  }
+  lyricsData.forEach((line, index) => {
+    const lineDiv = document.createElement('div');
+    lineDiv.id = `lyric-${index}`;
+    lineDiv.className = `lyric-line cursor-pointer text-center py-4 px-4 rounded-2xl border border-transparent hover:bg-white/5 active:scale-[0.99] transition-all duration-300`;
+    lineDiv.innerHTML = `<p class="text-lg sm:text-2xl font-bold"><span class="paint-text" id="kr-${index}">${line.text}</span></p>`;
+    lineDiv.addEventListener('click', () => {
+      audioTrack.currentTime = line.start;
+      playAudio();
+      spawnBurstHeartsAt(lineDiv);
+    });
+    lyricsWindow.appendChild(lineDiv);
+  });
+}
+
+function updateKaraokeAndPainting(currentTime) {
+  if (!lyricsData.length) return;
+  let currentLineIndex = -1;
+  for (let i = 0; i < lyricsData.length; i++) {
+    if (currentTime >= lyricsData[i].start && (i === lyricsData.length - 1 || currentTime < lyricsData[i + 1].start)) {
+      currentLineIndex = i; break;
+    }
+  }
+  if (currentLineIndex !== -1) {
+    if (currentLineIndex !== activeLineIndex) {
+      if (activeLineIndex !== -1) {
+        const prevEl = document.getElementById(`lyric-${activeLineIndex}`);
+        if (prevEl) { prevEl.classList.remove('active'); setPaintingProgress(activeLineIndex, '100%'); }
+      }
+      activeLineIndex = currentLineIndex;
+      const activeEl = document.getElementById(`lyric-${activeLineIndex}`);
+      if (activeEl) {
+        activeEl.classList.add('active');
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        spawnHeartFromVinyl();
+      }
+    }
+    const line = lyricsData[currentLineIndex];
+    const duration = line.end - line.start;
+    const elapsed = currentTime - line.start;
+    let percent = duration > 0 ? (elapsed / duration) * 100 : 0;
+    percent = Math.max(0, Math.min(100, percent));
+    setPaintingProgress(currentLineIndex, `${percent}%`);
+    for (let i = 0; i < currentLineIndex; i++) setPaintingProgress(i, '100%');
+    for (let i = currentLineIndex + 1; i < lyricsData.length; i++) setPaintingProgress(i, '0%');
+  }
+}
+
+function setPaintingProgress(index, value) {
+  const krSpan = document.getElementById(`kr-${index}`);
+  if (krSpan) krSpan.style.setProperty('--paint-progress', value);
+}
+
+// =================== MENSAJE / CARTA (modal accesible siempre) ===================
+const noteModal = document.getElementById('note-modal');
+const noteCard = document.getElementById('note-card');
+const noteText = document.getElementById('note-text');
+const btnOpenNote = document.getElementById('btn-open-note');
+const btnCloseNote = document.getElementById('btn-close-note');
+let typeTimer = null;
+
+function typeWriteNote() {
+  clearTimeout(typeTimer);
+  noteText.textContent = '';
+  noteText.classList.add('typewrite');
+  let i = 0;
+  function step() {
+    if (i <= LOVE_NOTE.length) {
+      noteText.textContent = LOVE_NOTE.slice(0, i);
+      i++;
+      typeTimer = setTimeout(step, 18);
+    } else {
+      noteText.classList.remove('typewrite');
+    }
+  }
+  step();
+}
+
+function openNote() {
+  noteModal.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    noteModal.style.opacity = '1';
+    noteCard.style.opacity = '1';
+    noteCard.style.transform = 'scale(1)';
+  });
+  typeWriteNote();
+}
+function closeNote() {
+  noteModal.style.opacity = '0';
+  noteCard.style.opacity = '0';
+  noteCard.style.transform = 'scale(0.9)';
+  clearTimeout(typeTimer);
+  setTimeout(() => noteModal.classList.add('hidden'), 400);
+}
+btnOpenNote.addEventListener('click', openNote);
+btnCloseNote.addEventListener('click', closeNote);
+noteModal.addEventListener('click', (e) => { if (e.target === noteModal) closeNote(); });
+
+// =================== CANVAS DE CORAZONES OPTIMIZADO ===================
+const canvas = document.getElementById('heartCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Pre-renderizar corazón en un canvas oculto para máximo rendimiento
+const preCanvas = document.createElement('canvas');
+preCanvas.width = 100;
+preCanvas.height = 100;
+const pctx = preCanvas.getContext('2d');
+function createPreHeart() {
+  const x = 50, y = 18, size = 64;
+  const topCurveHeight = size * 0.3;
+  pctx.beginPath();
+  pctx.moveTo(x, y + topCurveHeight);
+  pctx.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + topCurveHeight);
+  pctx.bezierCurveTo(x - size / 2, y + (size + topCurveHeight) / 2, x, y + (size + topCurveHeight) / 2, x, y + size);
+  pctx.bezierCurveTo(x, y + (size + topCurveHeight) / 2, x + size / 2, y + (size + topCurveHeight) / 2, x + size / 2, y + topCurveHeight);
+  pctx.bezierCurveTo(x + size / 2, y, x, y, x, y + topCurveHeight);
+  pctx.closePath();
+  pctx.fillStyle = '#fff';
+  pctx.fill();
+}
+createPreHeart();
+
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+class Particle {
+  constructor(x, y, isExplosion = false) {
+    this.x = x; this.y = y;
+    this.size = Math.random() * (isExplosion ? 22 : 34) + 13;
+    this.speedX = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 1.4;
+    this.speedY = isExplosion ? (Math.random() - 0.5) * 6 : -Math.random() * 1.4 - 0.5;
+    this.rotation = (Math.random() - 0.5) * 0.6;
+    this.rotSpeed = (Math.random() - 0.5) * 0.03;
+    // Gama variada de rosados: desde coral/rosa cálido hasta fucsia y magenta
+    const hue = 320 + Math.random() * 45;
+    const light = 62 + Math.random() * 20;
+    this.color = `hsla(${hue}, 88%, ${light}%, `;
+    this.isExplosion = isExplosion;
+    this.life = 1;
+    this.decay = Math.random() * 0.02 + 0.01;
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.globalAlpha = this.isExplosion ? this.life : 0.85;
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.drawImage(preCanvas, -this.size/2, -this.size/2, this.size, this.size);
+    ctx.globalCompositeOperation = "source-atop";
+    ctx.fillStyle = this.color + (this.isExplosion ? this.life : 0.85) + ')';
+    ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+
+    ctx.restore();
+  }
+  update() {
+    this.x += this.speedX; this.y += this.speedY;
+    this.rotation += this.rotSpeed;
+    if (this.isExplosion) { this.life -= this.decay; }
+    else { this.speedX += Math.sin(Date.now() / 1000 + this.size) * 0.01; }
+  }
+}
+
+function handleParticles() {
+  if (!reduceMotion && particles.length < 26 && Math.random() < 0.035) {
+    particles.push(new Particle(Math.random() * canvas.width, canvas.height + 20, false));
+  }
+  for (let i = 0; i < particles.length; i++) {
+    particles[i].update();
+    if(particles[i].x > -50 && particles[i].x < canvas.width + 50 && particles[i].y > -50) {
+        particles[i].draw();
+    }
+    if (particles[i].y < -40 || (particles[i].isExplosion && particles[i].life <= 0)) {
+      particles.splice(i, 1); i--;
+    }
+  }
+}
+
+window.addEventListener('click', (e) => {
+  if (e.target.closest('button') || e.target.closest('input') || e.target.closest('#wax-seal')) return;
+  for (let i = 0; i < 6; i++) particles.push(new Particle(e.clientX, e.clientY, true));
+});
+window.addEventListener('touchstart', (e) => {
+  if (e.target.closest('button') || e.target.closest('input') || e.target.closest('#wax-seal')) return;
+  const touch = e.touches[0];
+  for (let i = 0; i < 6; i++) particles.push(new Particle(touch.clientX, touch.clientY, true));
+});
+
+function spawnBurstHeartsAt(element) {
+  const rect = element.getBoundingClientRect();
+  const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+  for (let i = 0; i < 6; i++) particles.push(new Particle(x, y, true));
+}
+function spawnHeartFromVinyl() {
+  const rect = vinylDisc.getBoundingClientRect();
+  const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+  for (let i = 0; i < 3; i++) {
+    const p = new Particle(x, y, true);
+    p.speedY = -Math.random() * 3 - 2;
+    particles.push(p);
+  }
+}
+
+function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); handleParticles(); requestAnimationFrame(animate); }
+window.onload = function () { animate(); };
+
+// =================== EDITOR DE SINCRONIZACIÓN (?editor en la URL) ===================
+const EDITOR_MODE = true;
+const btnEditorToggle = document.getElementById('btn-editor-toggle');
+const editorPanel = document.getElementById('editor-panel');
+const btnEditorClose = document.getElementById('btn-editor-close');
+const editorTrackSelect = document.getElementById('editor-track-select');
+const editorStepPaste = document.getElementById('editor-step-paste');
+const editorStepSync = document.getElementById('editor-step-sync');
+const editorLyricsInput = document.getElementById('editor-lyrics-input');
+const btnEditorLoad = document.getElementById('btn-editor-load');
+const editorPlayPause = document.getElementById('editor-play-pause');
+const editorCurrentTime = document.getElementById('editor-current-time');
+const editorMarkLine = document.getElementById('editor-mark-line');
+const editorUndo = document.getElementById('editor-undo');
+const editorLinesList = document.getElementById('editor-lines-list');
+const btnEditorGenerate = document.getElementById('btn-editor-generate');
+const editorOutputWrap = document.getElementById('editor-output-wrap');
+const editorOutput = document.getElementById('editor-output');
+const btnEditorCopy = document.getElementById('btn-editor-copy');
+const btnEditorPreview = document.getElementById('btn-editor-preview');
+
+let editorLines = []; // { text, start, end }
+let editorPointer = 0;
+
+if (EDITOR_MODE) {
+  btnEditorToggle.classList.remove('hidden');
+  editorTrackSelect.innerHTML = tracks.map((t, i) => `<option value="${i}">${i + 1}. ${t.title} — ${t.artist}</option>`).join('');
+}
+
+btnEditorToggle.addEventListener('click', () => {
+  editorPanel.classList.remove('hidden');
+  const idx = parseInt(editorTrackSelect.value || 0);
+  if (currentTrackIndex !== idx && playerScreen.classList.contains('hidden') === false) {
+    // si ya hay reproductor activo, sincroniza la pista seleccionada
+  }
+});
+btnEditorClose.addEventListener('click', () => editorPanel.classList.add('hidden'));
+
+editorTrackSelect.addEventListener('change', () => {
+  loadTrack(parseInt(editorTrackSelect.value), false);
+});
+
+btnEditorLoad.addEventListener('click', () => {
+  const raw = editorLyricsInput.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  if (!raw.length) return;
+  editorLines = raw.map(text => ({ text, start: null, end: null }));
+  editorPointer = 0;
+  editorStepPaste.classList.add('hidden');
+  editorStepSync.classList.remove('hidden');
+  editorOutputWrap.classList.add('hidden');
+  renderEditorLines();
+  // asegura que la canción seleccionada esté cargada y lista
+  const idx = parseInt(editorTrackSelect.value || 0);
+  loadTrack(idx, false);
+});
+
+function renderEditorLines() {
+  editorLinesList.innerHTML = '';
+  editorLines.forEach((line, i) => {
+    const row = document.createElement('div');
+    const isCurrent = i === editorPointer;
+    row.className = `flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-xs ${isCurrent ? 'font-bold' : 'text-white/60'}`;
+    row.style.background = isCurrent ? 'rgba(255,79,129,0.18)' : 'transparent';
+    row.style.color = isCurrent ? 'var(--rosa-soft)' : '';
+    row.innerHTML = `
+      <span class="truncate flex-1">${i + 1}. ${line.text}</span>
+      <span class="font-mono text-[10px] shrink-0">${line.start !== null ? formatTime(line.start) : '—'}</span>
+    `;
+    row.addEventListener('click', () => {
+      editorPointer = i;
+      renderEditorLines();
+    });
+    editorLinesList.appendChild(row);
+  });
+}
+
+editorPlayPause.addEventListener('click', () => {
+  if (audioTrack.paused) {
+    playAudio();
+    editorPlayPause.textContent = '⏸ Pausar';
+  } else {
+    pauseAudio();
+    editorPlayPause.textContent = '▶ Reproducir';
+  }
+});
+
+audioTrack.addEventListener('timeupdate', () => {
+  if (!editorPanel.classList.contains('hidden')) {
+    editorCurrentTime.textContent = formatTime(audioTrack.currentTime);
+  }
+});
+
+editorMarkLine.addEventListener('click', () => {
+  if (editorPointer >= editorLines.length) return;
+  const t = audioTrack.currentTime;
+  editorLines[editorPointer].start = t;
+  if (editorPointer > 0) editorLines[editorPointer - 1].end = t;
+  editorPointer++;
+  if (editorPointer >= editorLines.length) editorPointer = editorLines.length - 1;
+  renderEditorLines();
+  spawnBurstHeartsAt(editorMarkLine);
+});
+
+editorUndo.addEventListener('click', () => {
+  if (editorPointer > 0) {
+    editorPointer--;
+    editorLines[editorPointer].start = null;
+    if (editorPointer > 0) editorLines[editorPointer - 1].end = null;
+    renderEditorLines();
+  }
+});
+
+btnEditorGenerate.addEventListener('click', () => {
+  if (editorLines.some(l => l.start === null)) {
+    alert('Todavía faltan líneas por marcar.');
+    return;
+  }
+  const last = editorLines[editorLines.length - 1];
+  if (last.end === null) last.end = audioTrack.duration || last.start + 3;
+  const code = editorLines.map(l =>
+    `      { start: ${l.start.toFixed(2)}, end: ${l.end.toFixed(2)}, text: '${l.text.replace(/'/g, "\\'")}' },`
+  ).join('\n');
+  editorOutput.value = code;
+  editorOutputWrap.classList.remove('hidden');
+});
+
+btnEditorCopy.addEventListener('click', () => {
+  editorOutput.select();
+  navigator.clipboard?.writeText(editorOutput.value).then(() => {
+    btnEditorCopy.textContent = '¡Copiado! ✅';
+    setTimeout(() => btnEditorCopy.textContent = 'Copiar código', 1500);
+  }).catch(() => document.execCommand('copy'));
+});
+
+btnEditorPreview.addEventListener('click', () => {
+  if (editorLines.every(l => l.start === null)) return;
+  const previewData = editorLines
+    .filter(l => l.start !== null)
+    .map((l, i, arr) => ({
+      start: l.start,
+      end: l.end !== null ? l.end : (arr[i + 1] ? arr[i + 1].start : l.start + 3),
+      text: l.text
+    }));
+  lyricsData = previewData;
+  activeLineIndex = -1;
+  initKaraoke();
+  editorPanel.classList.add('hidden');
+});
+
+</script>
+</body>
+</html>
