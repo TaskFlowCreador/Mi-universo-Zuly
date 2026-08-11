@@ -123,11 +123,15 @@
     <div class="lg:col-span-5 flex flex-col items-center bg-black/35 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
       <div class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full border" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
         <span class="w-2 h-2 rounded-full animate-ping" style="background:var(--rosa-soft)"></span>
-        <span class="text-[10px] font-semibold uppercase tracking-widest" style="color:var(--rosa-blush)">Nuestras 5 canciones</span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest" style="color:var(--rosa-blush)">Nuestras 9 canciones</span>
       </div>
 
       <button id="btn-open-note" title="Nuestro mensaje" class="absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center border transition-all hover:scale-110 active:scale-95" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
         <span class="text-lg">💌</span>
+      </button>
+
+      <button id="btn-open-note-2" title="Otra cartita para ti" class="absolute top-14 left-3 w-9 h-9 rounded-full flex items-center justify-center border transition-all hover:scale-110 active:scale-95" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="text-lg">💝</span>
       </button>
 
       <div class="relative w-48 h-48 sm:w-56 sm:h-56 my-4 select-none group">
@@ -212,6 +216,17 @@
   </div>
 </div>
 
+<!-- ===== MODAL: SEGUNDA CARTITA ===== -->
+<div id="note-modal-2" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-5 opacity-0" style="background:rgba(10,2,6,0.75);backdrop-filter:blur(6px)">
+  <div id="note-card-2" class="relative w-full max-w-sm bg-pink-50 text-gray-800 rounded-2xl shadow-2xl p-6 opacity-0 scale-90 font-serif">
+    <button id="btn-close-note-2" class="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-black/5 transition-all">✕</button>
+    <p class="text-center text-2xl mb-2">💝</p>
+    <h3 class="text-center text-lg font-bold mb-3" style="color:var(--rosa-fuchsia)">Otra cartita para ti</h3>
+    <p id="note-text-2" class="text-sm leading-relaxed italic text-gray-700 min-h-[160px]"></p>
+    <p class="text-right font-script text-2xl mt-3" style="color:var(--rosa-fuchsia)">Tuyo siempre 💞</p>
+  </div>
+</div>
+
 <!-- ===== EDITOR DE SINCRONIZACIÓN DE LETRA ===== -->
 <button id="btn-editor-toggle" class="fixed bottom-4 right-4 z-[90] text-xs font-semibold px-3 py-2 rounded-full shadow-lg border opacity-60 hover:opacity-100 transition-opacity" style="background:rgba(34,4,15,0.9);border-color:rgba(255,79,129,0.4);color:var(--rosa-soft)">
   🎼
@@ -280,7 +295,9 @@ if (START_DATE) {
 // =====================================================================
 const LOVE_NOTE = `Zuleyka, cada vez que entres aquí quiero que sientas lo mismo que siento yo cuando pienso en ti: que existe un lugar, en medio de todo internet, que es solo nuestro. Aquí guardé las canciones que nos representan, las que suenan a nosotros. No importa cuántas veces vuelvas, este rincón te va a estar esperando, con la misma ternura de la primera vez. Gracias por ser mi persona favorita. Te amo.`;
 
-// =================== DATOS DE LAS 5 CANCIONES ===================
+const LOVE_NOTE_2 = `Zuleyka, esta es mi segunda cartita, la que escribí solo porque contigo nunca me alcanza una sola. Cada canción que sumo aquí es un pedacito de nosotros, un recuerdo, una tarde, una sonrisa tuya que no quiero olvidar. Quiero seguir llenando este rincón de cosas bonitas, hasta que un día lo veas completo y sepas todo lo que significas para mí. Mientras tanto, sigue tocando cada corazón, cada canción, cada palabra: todas están puestas aquí a propósito, pensando en ti. Eres mi persona favorita, hoy y siempre.`;
+
+// =================== DATOS DE LAS 9 CANCIONES ===================
 const tracks = [
   {
     id: 0,
@@ -592,6 +609,46 @@ const tracks = [
       { start: 170.23, end: 177.36, text: 'Déjame llenar tu vida de ilusión y fantasía' },
       { start: 177.36, end: 215.79, text: 'Déjame intentar, déjame intentar' }
     ]
+  },
+  {
+    id: 5,
+    title: "La Quiero a Morir",
+    artist: "Francis Cabrel",
+    src: "6-la-quiero-a-morir.mp3",
+    emoji: "💘",
+    color1: "#f472b6",
+    color2: "#3a0a20",
+    lyrics: []
+  },
+  {
+    id: 6,
+    title: "Sabes",
+    artist: "Reik",
+    src: "7-sabes.mp3",
+    emoji: "💝",
+    color1: "#e0326b",
+    color2: "#2a0714",
+    lyrics: []
+  },
+  {
+    id: 7,
+    title: "La Cosa Más Bella",
+    artist: "Eros Ramazzotti",
+    src: "8-la-cosa-mas-bella.mp3",
+    emoji: "💓",
+    color1: "#ffd7a8",
+    color2: "#5c1636",
+    lyrics: []
+  },
+  {
+    id: 8,
+    title: "Hasta el Fin del Mundo",
+    artist: "Jennifer Peña",
+    src: "9-hasta-el-fin-del-mundo.mp3",
+    emoji: "💕",
+    color1: "#c084fc",
+    color2: "#22040f",
+    lyrics: []
   }
 ];
 
@@ -641,7 +698,7 @@ function hideAudioStatus() {
 }
 audioTrack.addEventListener('error', () => {
   const track = tracks[currentTrackIndex];
-  showAudioStatus(`No se encontró el archivo "${track.src}". Revisa que esté en la carpeta audio/ con ese nombre exacto.`);
+  showAudioStatus(`No se encontró el archivo "${track.src}". Revisa que esté en la raíz del repositorio (junto al index.html) con ese nombre exacto.`);
 });
 
 waxSeal.addEventListener('click', () => {
@@ -940,6 +997,51 @@ function closeNote() {
 btnOpenNote.addEventListener('click', openNote);
 btnCloseNote.addEventListener('click', closeNote);
 noteModal.addEventListener('click', (e) => { if (e.target === noteModal) closeNote(); });
+
+// ===== Segunda cartita =====
+const noteModal2 = document.getElementById('note-modal-2');
+const noteCard2 = document.getElementById('note-card-2');
+const noteText2 = document.getElementById('note-text-2');
+const btnOpenNote2 = document.getElementById('btn-open-note-2');
+const btnCloseNote2 = document.getElementById('btn-close-note-2');
+let typeTimer2 = null;
+
+function typeWriteNote2() {
+  clearTimeout(typeTimer2);
+  noteText2.textContent = '';
+  noteText2.classList.add('typewrite');
+  let i = 0;
+  function step() {
+    if (i <= LOVE_NOTE_2.length) {
+      noteText2.textContent = LOVE_NOTE_2.slice(0, i);
+      i++;
+      typeTimer2 = setTimeout(step, 18);
+    } else {
+      noteText2.classList.remove('typewrite');
+    }
+  }
+  step();
+}
+
+function openNote2() {
+  noteModal2.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    noteModal2.style.opacity = '1';
+    noteCard2.style.opacity = '1';
+    noteCard2.style.transform = 'scale(1)';
+  });
+  typeWriteNote2();
+}
+function closeNote2() {
+  noteModal2.style.opacity = '0';
+  noteCard2.style.opacity = '0';
+  noteCard2.style.transform = 'scale(0.9)';
+  clearTimeout(typeTimer2);
+  setTimeout(() => noteModal2.classList.add('hidden'), 400);
+}
+btnOpenNote2.addEventListener('click', openNote2);
+btnCloseNote2.addEventListener('click', closeNote2);
+noteModal2.addEventListener('click', (e) => { if (e.target === noteModal2) closeNote2(); });
 
 // =================== CANVAS DE CORAZONES ===================
 const canvas = document.getElementById('heartCanvas');
