@@ -1,0 +1,2079 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuestro rincón · Zuleyka 💗</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Parisienne&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rosa-deep:#22040f;
+    --rosa-mid:#5c1636;
+    --rosa-glow:#ff4f81;
+    --rosa-soft:#ffaecb;
+    --rosa-blush:#ffe3ee;
+    --rosa-fuchsia:#e0326b;
+    --rosa-coral:#ff8577;
+    --rosa-rosegold:#e8b4b8;
+    --rosa-magenta:#c2185b;
+    --gold-warm:#ffd7a8;
+  }
+  body{font-family:'Plus Jakarta Sans',sans-serif;
+    background:radial-gradient(circle at 18% 12%,rgba(255,79,129,0.22) 0%,transparent 45%),
+               radial-gradient(circle at 88% 88%,rgba(224,50,107,0.28) 0%,transparent 50%),
+               radial-gradient(circle at center,var(--rosa-deep) 0%,#0b0104 100%);
+    overflow-x:hidden;}
+  .font-serif{font-family:'Playfair Display',serif;}
+  .font-script{font-family:'Parisienne',cursive;}
+  .lyrics-scroll::-webkit-scrollbar{width:4px;}
+  .lyrics-scroll::-webkit-scrollbar-track{background:transparent;}
+  .lyrics-scroll::-webkit-scrollbar-thumb{background:rgba(255,174,203,0.35);border-radius:10px;}
+  .lyrics-container{position:relative;
+    mask-image:linear-gradient(to bottom,transparent,white 15%,white 85%,transparent);
+    -webkit-mask-image:linear-gradient(to bottom,transparent,white 15%,white 85%,transparent);}
+  .envelope-wrapper{perspective:1000px;}
+  .envelope{position:relative;transform-style:preserve-3d;transition:transform 1s ease;}
+  .letter{transform:translateY(0px) scale(0.95);opacity:0;pointer-events:none;
+    transition:transform 1s cubic-bezier(0.34,1.56,0.64,1) 0.5s, opacity .8s ease .5s;z-index:10;}
+  #envelope-container.open .letter{transform:translateY(-145px) scale(1.05);opacity:1;pointer-events:auto;z-index:50;}
+  #envelope-container.open #flap{transform:rotateX(180deg);z-index:5;}
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .spinning{animation:spin 18s linear infinite;}
+  .paused-spin{animation-play-state:paused;}
+  .lyric-line{transition:all .4s ease;opacity:.35;transform:scale(.95);}
+  .lyric-line.active{transform:scale(1.04);opacity:1;}
+  .paint-text{background-image:linear-gradient(to right,var(--rosa-soft) var(--paint-progress,0%),rgba(255,255,255,0.3) var(--paint-progress,0%));
+    -webkit-background-clip:text;background-clip:text;color:transparent;display:inline;}
+  .paint-text-sub{background-image:linear-gradient(to right,var(--rosa-blush) var(--paint-progress-sub,0%),rgba(255,255,255,0.22) var(--paint-progress-sub,0%));
+    -webkit-background-clip:text;background-clip:text;color:transparent;display:inline;}
+  @keyframes pulse-soft{0%,100%{transform:scale(1);opacity:.9;}50%{transform:scale(1.06);opacity:1;filter:drop-shadow(0 0 12px rgba(255,79,129,.7));}}
+  .pulse-heart{animation:pulse-soft 1.6s infinite ease-in-out;}
+  @keyframes eq-pulse{0%,100%{height:4px;}50%{height:16px;}}
+  .eq-bar-1{animation:eq-pulse .6s infinite ease-in-out alternate;}
+  .eq-bar-2{animation:eq-pulse .8s infinite ease-in-out alternate .15s;}
+  .eq-bar-3{animation:eq-pulse .5s infinite ease-in-out alternate .3s;}
+  @keyframes float-in{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  .fade-up{animation:float-in .6s cubic-bezier(0.16,1,0.3,1) both;}
+  #note-modal{transition:opacity .4s ease;}
+  #note-card{transition:transform .5s cubic-bezier(0.34,1.56,0.64,1), opacity .4s ease;}
+  .typewrite{border-right:2px solid var(--rosa-soft);white-space:pre-wrap;overflow:hidden;}
+  input[type=range]{accent-color:var(--rosa-glow);}
+  *:focus-visible{outline:2px solid var(--rosa-soft);outline-offset:2px;border-radius:6px;}
+  @media (prefers-reduced-motion: reduce){
+    .spinning,.pulse-heart,.eq-bar-1,.eq-bar-2,.eq-bar-3,.fade-up{animation:none !important;}
+    .letter,#flap,.lyric-line,#note-card{transition:none !important;}
+  }
+</style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-white relative">
+
+<canvas id="heartCanvas" class="absolute inset-0 pointer-events-auto z-0"></canvas>
+
+<header class="w-full text-center py-6 px-6 z-10 select-none">
+  <p class="text-xs uppercase tracking-[0.3em] text-pink-200/80 font-semibold">Un pedacito de tiempo, solo para</p>
+  <p class="font-script text-3xl sm:text-4xl mt-1" style="color:var(--rosa-soft)">Zuleyka</p>
+
+  <div class="mt-5 max-w-xs mx-auto">
+    <p class="text-center text-xs sm:text-sm font-serif tracking-wide mb-2" style="color:var(--rosa-blush)">Nuestro tiempo juntos</p>
+    <div class="flex items-end justify-center gap-2 sm:gap-3">
+      <div class="text-center">
+        <span id="counter-days" class="block text-2xl sm:text-3xl font-bold tabular-nums bg-clip-text text-transparent" style="background-image:linear-gradient(to bottom right,var(--rosa-soft),var(--rosa-fuchsia))">0</span>
+        <span class="block text-[8px] sm:text-[9px] uppercase tracking-widest mt-0.5" style="color:rgba(255,174,203,0.55)">días</span>
+      </div>
+      <span class="text-lg sm:text-xl font-light pb-3" style="color:rgba(255,174,203,0.28)">:</span>
+      <div class="text-center">
+        <span id="counter-hours" class="block text-2xl sm:text-3xl font-bold tabular-nums bg-clip-text text-transparent" style="background-image:linear-gradient(to bottom right,var(--rosa-soft),var(--rosa-fuchsia))">00</span>
+        <span class="block text-[8px] sm:text-[9px] uppercase tracking-widest mt-0.5" style="color:rgba(255,174,203,0.55)">horas</span>
+      </div>
+      <span class="text-lg sm:text-xl font-light pb-3" style="color:rgba(255,174,203,0.28)">:</span>
+      <div class="text-center">
+        <span id="counter-minutes" class="block text-2xl sm:text-3xl font-bold tabular-nums bg-clip-text text-transparent" style="background-image:linear-gradient(to bottom right,var(--rosa-soft),var(--rosa-fuchsia))">00</span>
+        <span class="block text-[8px] sm:text-[9px] uppercase tracking-widest mt-0.5" style="color:rgba(255,174,203,0.55)">min</span>
+      </div>
+      <span class="text-lg sm:text-xl font-light pb-3" style="color:rgba(255,174,203,0.28)">:</span>
+      <div class="text-center">
+        <span id="counter-seconds" class="block text-2xl sm:text-3xl font-bold tabular-nums bg-clip-text text-transparent" style="background-image:linear-gradient(to bottom right,var(--rosa-soft),var(--rosa-fuchsia))">00</span>
+        <span class="block text-[8px] sm:text-[9px] uppercase tracking-widest mt-0.5" style="color:rgba(255,174,203,0.55)">seg</span>
+      </div>
+    </div>
+    <p class="text-center text-[10px] italic mt-2" style="color:rgba(255,174,203,0.5)">desde el 30 de septiembre del 2015, y contando...</p>
+  </div>
+</header>
+
+<main class="flex-grow flex items-center justify-center px-4 md:px-8 z-10 w-full max-w-6xl mx-auto my-6">
+
+  <!-- ===== PANTALLA 1: SOBRE Y CARTA ===== -->
+  <div id="letter-screen" class="w-full flex flex-col items-center justify-center transition-all duration-700">
+    <p id="hint-text" class="text-pink-200/80 text-sm mb-6 font-serif animate-pulse text-center">Toca el corazón para abrir tu sorpresa...</p>
+
+    <div class="relative w-[320px] h-[300px] flex items-center justify-center select-none">
+      <div id="envelope-container" class="relative w-[320px] h-[220px]">
+        <div class="absolute bottom-0 left-0 w-full h-[180px] rounded-b-2xl z-0 shadow-2xl" style="background:var(--rosa-mid)"></div>
+
+        <div id="paper-letter" class="letter absolute bottom-2 left-4 right-4 bg-pink-50 text-gray-800 p-5 rounded-lg shadow-lg flex flex-col justify-between h-[230px]">
+          <div class="text-center font-serif flex-grow flex flex-col justify-center px-1">
+            <h2 class="text-lg font-bold mb-1" style="color:var(--rosa-fuchsia)">Para ti, mi Zuleyka 💗</h2>
+            <p class="text-xs sm:text-sm text-gray-700 italic leading-relaxed max-h-[130px] overflow-y-auto px-1 font-semibold mt-3">
+              Cada vez que abras este lugar, estarás abriendo un pedacito de mí. Aquí guardo nuestras canciones, las que nos recuerdan por qué te amo. Este rincón de internet, en medio de todo el espacio y el tiempo que existe, es tuyo. Solo tuyo.
+            </p>
+          </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 w-full h-[180px] rounded-b-2xl z-20 border-t border-pink-800/30" style="background:#4a1029">
+          <div class="absolute bottom-0 left-0 w-0 h-0 border-b-[180px] border-r-[160px] border-r-transparent rounded-bl-2xl" style="border-bottom-color:rgba(74,16,41,0.9)"></div>
+          <div class="absolute bottom-0 right-0 w-0 h-0 border-b-[180px] border-l-[160px] border-l-transparent rounded-br-2xl" style="border-bottom-color:rgba(74,16,41,0.9)"></div>
+        </div>
+
+        <div id="flap" class="absolute top-[40px] left-0 w-full h-[110px] origin-top transition-transform duration-700 ease-in-out z-30" style="clip-path:polygon(0 0,100% 0,50% 100%);background:#3d0c22"></div>
+
+        <!-- Sello de corazón -->
+        <div id="wax-seal" class="absolute bottom-[50px] left-1/2 transform -translate-x-1/2 z-40 cursor-pointer flex flex-col items-center group transition-all duration-300">
+          <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-2 pulse-heart transform group-hover:scale-110 transition-transform" style="background:linear-gradient(to bottom right,#ff8fb3,var(--rosa-glow),#7a1039);border-color:#ffcede">
+            <span class="text-2xl">💗</span>
+          </div>
+          <span class="text-[9px] mt-1.5 font-bold tracking-widest text-white drop-shadow-md bg-black/50 px-2 py-0.5 rounded-full select-none uppercase">Abrir</span>
+        </div>
+      </div>
+    </div>
+
+    <button id="btn-goto-music" class="hidden mt-6 text-white font-semibold py-3.5 px-8 rounded-full shadow-lg active:scale-95 transition-all z-20 flex items-center gap-2 tracking-wide text-sm animate-bounce" style="background:linear-gradient(to right,var(--rosa-glow),var(--rosa-fuchsia))">
+      Entrar a nuestro rincón 💕
+    </button>
+  </div>
+
+  <!-- ===== PANTALLA 2: REPRODUCTOR ===== -->
+  <div id="player-screen" class="hidden w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center transition-all duration-1000 opacity-0 transform translate-y-8">
+
+    <div class="lg:col-span-5 flex flex-col items-center bg-black/35 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+      <div class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full border" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="w-2 h-2 rounded-full animate-ping" style="background:var(--rosa-soft)"></span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest" style="color:var(--rosa-blush)">Nuestras 14 canciones</span>
+      </div>
+
+      <button id="btn-open-note" title="Nuestro mensaje" class="absolute top-3 left-3 w-9 h-9 rounded-full flex items-center justify-center border transition-all hover:scale-110 active:scale-95" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="text-lg">💌</span>
+      </button>
+
+      <button id="btn-open-note-2" title="Otra cartita para ti" class="absolute top-14 left-3 w-9 h-9 rounded-full flex items-center justify-center border transition-all hover:scale-110 active:scale-95" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="text-lg">💝</span>
+      </button>
+
+      <button id="btn-open-note-3" title="Una cartita más" class="absolute top-[104px] left-3 w-9 h-9 rounded-full flex items-center justify-center border transition-all hover:scale-110 active:scale-95" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="text-lg">💖</span>
+      </button>
+
+      <button id="btn-open-note-4" title="Una cartita más para ti" class="absolute top-[148px] left-3 w-9 h-9 rounded-full flex items-center justify-center border transition-all hover:scale-110 active:scale-95" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="text-lg">💗</span>
+      </button>
+
+      <button id="btn-open-note-5" title="Otra cartita más" class="absolute top-[192px] left-3 w-9 h-9 rounded-full flex items-center justify-center border transition-all hover:scale-110 active:scale-95" style="background:rgba(255,79,129,0.15);border-color:rgba(255,79,129,0.3)">
+        <span class="text-lg">🫶</span>
+      </button>
+
+      <div class="relative w-48 h-48 sm:w-56 sm:h-56 mt-44 mb-2 select-none group">
+        <div id="vinyl-aura" class="absolute inset-0 rounded-full blur-xl transition-all duration-1000 scale-95" style="background:linear-gradient(to top right,rgba(255,79,129,0.25),rgba(224,50,107,0.25))"></div>
+        <div id="vinyl-disc" class="spinning paused-spin w-full h-full rounded-full p-2 shadow-[0_0_40px_rgba(0,0,0,0.8)] relative border border-neutral-800 flex items-center justify-center cursor-pointer transition-all duration-700" style="background:radial-gradient(circle, var(--rosa-glow) 0%, #2a0714 100%)">
+          <div class="absolute inset-4 rounded-full border border-neutral-800/40"></div>
+          <div class="absolute inset-8 rounded-full border border-neutral-700/20"></div>
+          <div class="absolute inset-12 rounded-full border border-neutral-800/50"></div>
+          <div class="absolute inset-16 rounded-full border border-neutral-700/10"></div>
+          <div id="vinyl-center" class="w-[42%] h-[42%] rounded-full overflow-hidden relative flex items-center justify-center border-2 border-neutral-900 transition-all duration-500" style="background:linear-gradient(to top right,var(--rosa-glow),var(--rosa-fuchsia))">
+            <span id="vinyl-emoji" class="text-3xl filter drop-shadow">💗</span>
+            <div class="absolute w-4 h-4 bg-neutral-950 rounded-full border border-white/10 shadow-inner"></div>
+          </div>
+        </div>
+        <div id="needle-arm" class="absolute -top-4 right-1 transform origin-top-right rotate-[-20deg] transition-transform duration-1000 w-14 h-32 pointer-events-none drop-shadow-xl z-20">
+          <svg class="w-full h-full" viewBox="0 0 100 200" fill="none">
+            <circle cx="80" cy="20" r="12" fill="#4b5563"/><circle cx="80" cy="20" r="6" fill="#9ca3af"/>
+            <path d="M80 20 L40 160 L28 175" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+            <rect x="18" y="170" width="20" height="12" rx="2" transform="rotate(15 28 175)" fill="#374151"/>
+            <rect x="15" y="174" width="8" height="6" rx="1" transform="rotate(15 28 175)" fill="#ffaecb"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="text-center w-full px-4 select-none">
+        <h3 id="track-title" class="text-base sm:text-lg font-serif font-bold tracking-wide truncate" style="color:var(--rosa-soft)">-</h3>
+        <p id="track-artist" class="text-xs text-white/60 mt-0.5">-</p>
+        <p id="audio-status" class="hidden text-[11px] mt-1.5 px-3 py-1 rounded-full inline-block" style="background:rgba(255,79,129,0.18);color:var(--rosa-blush)"></p>
+      </div>
+
+      <div class="w-full px-2 mt-4">
+        <div class="flex items-center justify-between text-[10px] text-gray-400 font-mono mb-1 select-none">
+          <span id="time-current">0:00</span><span id="time-total">0:00</span>
+        </div>
+        <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-full bg-white/10 rounded-lg h-1.5 appearance-none cursor-pointer focus:outline-none focus:ring-0">
+      </div>
+
+      <div class="flex items-center justify-center gap-1.5 sm:gap-2 mt-4 px-2 py-1.5 rounded-full" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07)">
+        <button id="btn-shuffle" title="Reproducción aleatoria" class="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-white active:scale-95 transition-all">
+          <svg class="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3h4v4h-2V6.41l-3.29 3.3-1.42-1.42L17.59 5H16V3zm4 14v4h-4v-2h1.59l-3.3-3.29 1.42-1.42L20 17.59V16h1zM3 6h5.17l1.66 1.66L8.41 9.17 7.17 8H3V6zm0 12v-2h4.17l7-7L12.75 7.6l-7 7H3v2h5.17l1.41 1.41L8.17 20H3v-2z"/></svg>
+        </button>
+        <button id="btn-rewind" class="w-10 h-10 flex items-center justify-center rounded-full text-gray-300 hover:text-white hover:bg-white/5 active:scale-95 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
+        <button id="btn-play-pause" class="p-4 mx-1 rounded-full hover:scale-105 active:scale-95 shadow-lg transition-all" style="background:linear-gradient(to bottom right,var(--rosa-glow),var(--rosa-fuchsia));box-shadow:0 10px 25px -5px rgba(224,50,107,0.5)">
+          <svg id="play-icon" class="w-6 h-6" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pause-icon" class="w-6 h-6 hidden" fill="white" viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </button>
+        <button id="btn-forward" class="w-10 h-10 flex items-center justify-center rounded-full text-gray-300 hover:text-white hover:bg-white/5 active:scale-95 transition-all">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 6v12l8.5-6z"/></svg>
+        </button>
+        <div class="w-10"></div>
+      </div>
+
+      <div class="flex items-center gap-2 mt-4 w-full px-2">
+        <button id="btn-mute" class="text-gray-300 hover:text-white">
+          <svg id="volume-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg>
+          <svg id="mute-icon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12 21 7.5l-1.5-1.5-4.5 4.5-4.5-4.5L9 7.5l4.5 4.5L9 16.5 10.5 18l4.5-4.5 4.5 4.5 1.5-1.5z"/></svg>
+        </button>
+        <input type="range" id="volume-bar" min="0" max="100" value="80" class="w-full h-1 rounded-lg appearance-none cursor-pointer">
+      </div>
+
+      <div id="playlist-container" class="w-full mt-5 flex flex-col gap-1.5"></div>
+    </div>
+
+    <!-- LETRA -->
+    <div class="lg:col-span-7 flex flex-col bg-black/35 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl h-[420px] sm:h-[480px] relative">
+      <div class="flex items-center justify-center mb-2 select-none">
+        <p class="text-xs uppercase tracking-[0.25em] font-semibold" style="color:rgba(255,174,203,0.85)">Letra</p>
+      </div>
+      <div id="lyrics-scroll-box" class="lyrics-container flex-grow overflow-y-auto lyrics-scroll overscroll-contain">
+        <div id="lyrics-window" class="flex flex-col justify-center min-h-full py-10"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== MODAL: NUESTRO MENSAJE (accesible en cualquier momento) ===== -->
+<div id="note-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-5 opacity-0" style="background:rgba(10,2,6,0.75);backdrop-filter:blur(6px)">
+  <div id="note-card" class="relative w-full max-w-sm bg-pink-50 text-gray-800 rounded-2xl shadow-2xl p-6 opacity-0 scale-90 font-serif">
+    <button id="btn-close-note" class="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-black/5 transition-all">✕</button>
+    <p class="text-center text-2xl mb-2">💗</p>
+    <h3 class="text-center text-lg font-bold mb-3" style="color:var(--rosa-fuchsia)">Para mi Zuleyka</h3>
+    <p id="note-text" class="text-sm leading-relaxed italic text-gray-700 min-h-[160px]"></p>
+    <p class="text-right font-script text-2xl mt-3" style="color:var(--rosa-fuchsia)">Te amo 💕</p>
+  </div>
+</div>
+
+<!-- ===== MODAL: SEGUNDA CARTITA ===== -->
+<div id="note-modal-2" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-5 opacity-0" style="background:rgba(10,2,6,0.75);backdrop-filter:blur(6px)">
+  <div id="note-card-2" class="relative w-full max-w-sm bg-pink-50 text-gray-800 rounded-2xl shadow-2xl p-6 opacity-0 scale-90 font-serif">
+    <button id="btn-close-note-2" class="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-black/5 transition-all">✕</button>
+    <p class="text-center text-2xl mb-2">💝</p>
+    <h3 class="text-center text-lg font-bold mb-3" style="color:var(--rosa-fuchsia)">Otra cartita para ti</h3>
+    <p id="note-text-2" class="text-sm leading-relaxed italic text-gray-700 min-h-[160px]"></p>
+    <p class="text-right font-script text-2xl mt-3" style="color:var(--rosa-fuchsia)">Tuyo siempre 💞</p>
+  </div>
+</div>
+
+<!-- ===== MODAL: TERCERA CARTITA ===== -->
+<div id="note-modal-3" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-5 opacity-0" style="background:rgba(10,2,6,0.75);backdrop-filter:blur(6px)">
+  <div id="note-card-3" class="relative w-full max-w-sm bg-pink-50 text-gray-800 rounded-2xl shadow-2xl p-6 opacity-0 scale-90 font-serif">
+    <button id="btn-close-note-3" class="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-black/5 transition-all">✕</button>
+    <p class="text-center text-2xl mb-2">💖</p>
+    <h3 class="text-center text-lg font-bold mb-3" style="color:var(--rosa-fuchsia)">Una cartita más</h3>
+    <p id="note-text-3" class="text-sm leading-relaxed italic text-gray-700 min-h-[160px]"></p>
+    <p class="text-right font-script text-2xl mt-3" style="color:var(--rosa-fuchsia)">Con todo mi corazón, Mi Zuly 💖</p>
+  </div>
+</div>
+
+<!-- ===== MODAL: CUARTA CARTITA ===== -->
+<div id="note-modal-4" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-5 opacity-0" style="background:rgba(10,2,6,0.75);backdrop-filter:blur(6px)">
+  <div id="note-card-4" class="relative w-full max-w-sm bg-pink-50 text-gray-800 rounded-2xl shadow-2xl p-6 opacity-0 scale-90 font-serif">
+    <button id="btn-close-note-4" class="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-black/5 transition-all">✕</button>
+    <p class="text-center text-2xl mb-2">💗</p>
+    <h3 class="text-center text-lg font-bold mb-3" style="color:var(--rosa-fuchsia)">Lo pequeño de cada día</h3>
+    <p id="note-text-4" class="text-sm leading-relaxed italic text-gray-700 min-h-[160px]"></p>
+    <p class="text-right font-script text-2xl mt-3" style="color:var(--rosa-fuchsia)">Te amo, Mi Zuly 💗</p>
+  </div>
+</div>
+
+<!-- ===== MODAL: QUINTA CARTITA ===== -->
+<div id="note-modal-5" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-5 opacity-0" style="background:rgba(10,2,6,0.75);backdrop-filter:blur(6px)">
+  <div id="note-card-5" class="relative w-full max-w-sm bg-pink-50 text-gray-800 rounded-2xl shadow-2xl p-6 opacity-0 scale-90 font-serif">
+    <button id="btn-close-note-5" class="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 hover:bg-black/5 transition-all">✕</button>
+    <p class="text-center text-2xl mb-2">🫶</p>
+    <h3 class="text-center text-lg font-bold mb-3" style="color:var(--rosa-fuchsia)">Mi lugar tranquilo</h3>
+    <p id="note-text-5" class="text-sm leading-relaxed italic text-gray-700 min-h-[160px]"></p>
+    <p class="text-right font-script text-2xl mt-3" style="color:var(--rosa-fuchsia)">Te amo tanto, Mi Zuly 🫶</p>
+  </div>
+</div>
+
+<!-- ===== EDITOR DE SINCRONIZACIÓN DE LETRA ===== -->
+<button id="btn-editor-toggle" class="fixed bottom-4 right-4 z-[90] text-xs font-semibold px-3 py-2 rounded-full shadow-lg border opacity-60 hover:opacity-100 transition-opacity" style="background:rgba(34,4,15,0.9);border-color:rgba(255,79,129,0.4);color:var(--rosa-soft)">
+  🎼
+</button>
+
+<div id="editor-panel" class="hidden fixed inset-0 z-[110] flex items-end sm:items-center justify-center px-3 py-3" style="background:rgba(10,2,6,0.85);backdrop-filter:blur(6px)">
+  <div class="w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-[#150208] border rounded-2xl shadow-2xl p-5 text-sm" style="border-color:rgba(255,79,129,0.25)">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-serif text-lg font-bold" style="color:var(--rosa-soft)">🎤 Editor de sincronización</h3>
+      <button id="btn-editor-close" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-white/70">✕</button>
+    </div>
+
+    <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1">Canción</label>
+    <select id="editor-track-select" class="w-full mb-4 bg-black/40 border rounded-lg px-3 py-2 text-white" style="border-color:rgba(255,79,129,0.25)"></select>
+
+    <div id="editor-step-paste">
+      <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1">Pega la letra (una línea por renglón)</label>
+      <textarea id="editor-lyrics-input" rows="8" class="w-full bg-black/40 border rounded-lg px-3 py-2 text-white mb-3 leading-relaxed" style="border-color:rgba(255,79,129,0.25)" placeholder="Línea 1 de la canción&#10;Línea 2 de la canción&#10;..."></textarea>
+      <button id="btn-editor-load" class="w-full py-2.5 rounded-full font-semibold text-white" style="background:linear-gradient(to right,var(--rosa-glow),var(--rosa-fuchsia))">Cargar líneas y empezar a marcar tiempos</button>
+    </div>
+
+    <div id="editor-step-sync" class="hidden">
+      <div class="flex items-center gap-3 mb-3">
+        <button id="editor-play-pause" class="px-4 py-2 rounded-full text-white font-semibold text-xs" style="background:linear-gradient(to right,var(--rosa-glow),var(--rosa-fuchsia))">▶ Reproducir</button>
+        <span id="editor-current-time" class="text-xs font-mono text-white/60">0:00</span>
+        <button id="editor-undo" class="ml-auto text-xs text-white/50 hover:text-white underline">Deshacer última marca</button>
+      </div>
+
+      <p class="text-[11px] text-white/50 mb-2">Toca <strong>«Marcar línea»</strong> justo cuando empiece a sonar cada línea resaltada. Se anota el tiempo automáticamente y pasa a la siguiente.</p>
+
+      <button id="editor-mark-line" class="w-full py-3.5 rounded-full font-bold text-white text-base mb-3 active:scale-95 transition-all" style="background:linear-gradient(to right,var(--rosa-fuchsia),var(--rosa-glow))">💗 Marcar línea actual</button>
+
+      <div id="editor-lines-list" class="flex flex-col gap-1 max-h-[220px] overflow-y-auto mb-3 pr-1"></div>
+
+      <button id="btn-editor-generate" class="w-full py-2.5 rounded-full font-semibold text-white mb-3" style="background:rgba(255,79,129,0.25);border:1px solid rgba(255,79,129,0.4)">Finalizar y generar código</button>
+
+      <div id="editor-output-wrap" class="hidden">
+        <label class="block text-[11px] uppercase tracking-wider text-white/50 mb-1">Copia este código y pásamelo</label>
+        <textarea id="editor-output" rows="8" readonly class="w-full bg-black/60 border rounded-lg px-3 py-2 text-pink-100 text-[11px] font-mono mb-2" style="border-color:rgba(255,79,129,0.25)"></textarea>
+        <button id="btn-editor-copy" class="w-full py-2 rounded-full text-xs font-semibold text-white" style="background:rgba(255,79,129,0.25);border:1px solid rgba(255,79,129,0.4)">Copiar código</button>
+      </div>
+
+      <button id="btn-editor-preview" class="w-full py-2.5 rounded-full font-semibold text-xs mt-3 text-white/80 border border-white/15 hover:bg-white/5">Probar esta letra en el karaoke (sin guardar)</button>
+    </div>
+  </div>
+</div>
+
+<audio id="audio-track" preload="metadata"></audio>
+
+<script>
+// =====================================================================
+// EDITA AQUÍ el mensaje del sobre 💌
+// =====================================================================
+const LOVE_NOTE = `Zuleyka, cada vez que entres aquí quiero que sientas lo mismo que siento yo cuando pienso en ti: que existe un lugar, en medio de todo internet, que es solo nuestro. Aquí guardé las canciones que nos representan, las que suenan a nosotros. No importa cuántas veces vuelvas, este rincón te va a estar esperando, con la misma ternura de la primera vez. Gracias por ser mi persona favorita. Te amo.`;
+
+const LOVE_NOTE_2 = `Zuleyka, esta es mi segunda cartita, la que escribí solo porque contigo nunca me alcanza una sola. Cada canción que sumo aquí es un pedacito de nosotros, un recuerdo, una tarde, una sonrisa tuya que no quiero olvidar. Quiero seguir llenando este rincón de cosas bonitas, hasta que un día lo veas completo y sepas todo lo que significas para mí. Mientras tanto, sigue tocando cada corazón, cada canción, cada palabra: todas están puestas aquí a propósito, pensando en ti. Eres mi persona favorita, hoy y siempre.`;
+
+const LOVE_NOTE_3 = `Mi Zuly, ya van tres cartitas y sigo sin quedarme sin cosas que decirte. Cada canción nueva que aparece aquí es una tarde pensando en ti, buscando y llenando nuestra página de nuestras canciones. Quiero que este rincón crezca contigo, que cada vez que vuelvas encuentres algo nuevo, una canción, una palabra, un corazón escondido, todo pensado para ti. Gracias por dejarme amarte así, de a poquitos y de a montones al mismo tiempo. Eres mi persona, mi lugar favorito, mi Zuly.`;
+
+const LOVE_NOTE_4 = `Mi Zuly, esta carta es distinta a las demás porque no quiero hablarte de algo grande, sino de lo pequeño: de cómo me haces sonreír por un mensaje tuyo en medio del día, de cómo extraño hasta las cosas más simples cuando no estás cerca. A veces el amor no se trata de gestos enormes, sino de querer estar en lo cotidiano contigo, en lo normal, en lo de todos los días. Eso es lo que quiero contigo: una vida entera hecha de días comunes que se sienten especiales solo porque tú estás en ellos. Te amo, mi Zuly.`;
+
+const LOVE_NOTE_5 = `Mi Zuly, quería decirte que contigo aprendí que el amor también puede sentirse como calma, no solo como emoción. Como llegar a un lugar seguro después de un día difícil. Eso eres tú para mí: mi lugar tranquilo en medio de todo. Gracias por ser ese refugio, sin siquiera proponértelo. Eres mi alma gemela, mi refugio, el lugar donde siempre deseo estar. Te amo tanto, mi Zuly.`;
+
+// =================== DATOS DE LAS 14 CANCIONES ===================
+const tracks = [
+  {
+    id: 0,
+    title: "Perderme Contigo",
+    artist: "Bacilos",
+    src: "1-perderme-contigo.mp3",
+    emoji: "💗",
+    color1: "#ff4f81",
+    color2: "#2a0714", 
+    lyrics: [
+      { start: 10.51, end: 15.15, text: 'Si te estoy robando el corazón' },
+      { start: 15.15, end: 19.54, text: 'No es pa\' dejarlo guardado' },
+      { start: 19.54, end: 21.96, text: 'No es para encerrarlo' },
+      { start: 21.96, end: 24.40, text: 'En ninguna jaula' },
+      { start: 24.40, end: 28.95, text: 'Aburrida' },
+      { start: 28.95, end: 33.49, text: 'Si te estoy robando el corazón' },
+      { start: 33.49, end: 38.14, text: 'No es para luego perderme' },
+      { start: 38.14, end: 40.52, text: 'Y salír corriendo' },
+      { start: 40.52, end: 42.93, text: 'Cuando esté seguro' },
+      { start: 42.93, end: 47.36, text: 'De que ya sea mío' },
+      { start: 47.36, end: 52.01, text: 'Y si me voy a perder' },
+      { start: 52.01, end: 56.55, text: 'Quiero perderme contigo' },
+      { start: 56.55, end: 58.80, text: 'Bailando al fondo de un bar' },
+      { start: 58.80, end: 61.17, text: 'En una vieja ciudad' },
+      { start: 61.17, end: 65.86, text: 'Como bandidos' },
+      { start: 65.86, end: 70.48, text: 'Y si me voy a perder' },
+      { start: 70.48, end: 74.89, text: 'Quiero perderme contigo' },
+      { start: 74.89, end: 77.31, text: 'Otro tequila con sal' },
+      { start: 77.31, end: 79.64, text: 'Si quieres pórtate mal' },
+      { start: 79.64, end: 84.32, text: 'Pero conmigo' },
+      { start: 84.32, end: 88.86, text: 'Si te estoy robando el corazón' },
+      { start: 88.86, end: 93.45, text: 'No es por ser coleccionista' },
+      { start: 93.45, end: 95.90, text: 'No es para enmarcarlo' },
+      { start: 95.90, end: 98.20, text: 'Ni para mostrarlo' },
+      { start: 98.20, end: 102.71, text: 'A mis amigos' },
+      { start: 102.71, end: 107.10, text: 'Tanta gente quiere decir, quiere opinar, y criticar' },
+      { start: 107.10, end: 111.91, text: 'Pero al final nadie más entiende esta locura' },
+      { start: 111.91, end: 116.62, text: 'Yo a tu lado puedo volar, puedo subir, puedo bajar' },
+      { start: 116.62, end: 121.36, text: 'El amor eterno es un helado de dulzura' },
+      { start: 121.36, end: 130.45, text: 'Y yo quiero disfrutarlo lentamente, mientras dura' },
+      { start: 130.45, end: 135.03, text: 'Y si me voy a perder' },
+      { start: 135.03, end: 139.52, text: 'Quiero perderme contigo' },
+      { start: 139.52, end: 141.88, text: 'Bailando al fondo de un bar' },
+      { start: 141.88, end: 144.35, text: 'En una vieja ciudad' },
+      { start: 144.35, end: 148.91, text: 'Como bandidos' },
+      { start: 148.91, end: 153.44, text: 'Y si me voy a perder' },
+      { start: 153.44, end: 158.09, text: 'Quiero perderme contigo' },
+      { start: 158.09, end: 160.32, text: 'Otro tequila con sal' },
+      { start: 160.32, end: 162.77, text: 'Si quieres pórtate mal' },
+      { start: 162.77, end: 167.40, text: 'Pero conmigo' },
+      { start: 167.40, end: 169.86, text: 'Llevo soñando con tenerte' },
+      { start: 169.86, end: 172.22, text: 'Desde antes de conocerte' },
+      { start: 172.22, end: 176.64, text: 'Ven y dime niña cómo, cuándo y dónde' },
+      { start: 176.64, end: 179.13, text: 'Tu amor es una fantasía' },
+      { start: 179.13, end: 181.74, text: 'Me lo sueño todo el día' },
+      { start: 181.74, end: 186.17, text: 'Y te busco como un loco por la noche' },
+      { start: 186.17, end: 190.82, text: 'Vamos a volar a cualquier ciudad' },
+      { start: 190.82, end: 195.54, text: 'A la Habana, o a Quito, o a Bogotá' },
+      { start: 195.54, end: 199.95, text: 'Vamos a París, vamos al Perú' },
+      { start: 199.95, end: 204.37, text: 'Voy a dónde tú quieras si quieres tú' },
+      { start: 204.37, end: 208.89, text: 'Y si me voy a perder' },
+      { start: 208.89, end: 213.35, text: 'Quiero perderme contigo' },
+      { start: 213.35, end: 215.75, text: 'Y el que me quiera encontrar' },
+      { start: 215.75, end: 218.18, text: 'Puede venirme a buscar' },
+      { start: 218.18, end: 222.73, text: 'En tu vestido' },
+      { start: 222.73, end: 227.36, text: 'Y si me voy a perder' },
+      { start: 227.36, end: 231.85, text: 'Quiero perderme contigo' },
+      { start: 231.85, end: 234.21, text: 'Otro tequila con sal' },
+      { start: 234.21, end: 236.82, text: 'Si quieres pórtate mal' },
+      { start: 236.82, end: 248.13, text: 'Pero conmigo' }
+    ]
+  },
+  {
+    id: 1,
+    title: "Estoy Enamorado",
+    artist: "Wisin y Yandel",
+    src: "2-estoy-enamorado.mp3",
+    emoji: "💓",
+    color1: "#c2185b",
+    color2: "#3a0a20", 
+    lyrics: [
+      { start: 3.11, end: 7.30, text: 'Una nueva mañana' },
+      { start: 7.30, end: 10.42, text: 'Me levante pensando en todas las cosas lindas que hemos hecho' },
+      { start: 10.42, end: 16.46, text: 'W con Yandel, pensando en tu olor, tu piel' },
+      { start: 16.46, end: 19.98, text: 'Para mí lo eres todo' },
+      { start: 19.98, end: 24.06, text: 'Quisiera estar siempre a tu lado' },
+      { start: 24.06, end: 29.73, text: 'Huir de todo mal (de todo mal)' },
+      { start: 29.73, end: 34.18, text: 'De tu cuerpo un esclavo' },
+      { start: 34.18, end: 38.23, text: 'Y creo que te he demostrado que' },
+      { start: 38.23, end: 42.90, text: 'Estoy enamorado (simplemente)' },
+      { start: 42.90, end: 48.00, text: 'Te lo quiero confesar (te lo quería decir)' },
+      { start: 48.00, end: 51.99, text: 'Totalmente ilusionado' },
+      { start: 51.99, end: 54.33, text: 'Me la pasó pensándote' },
+      { start: 54.33, end: 57.14, text: 'Nunca voy a soltarte (rumba)' },
+      { start: 57.14, end: 61.93, text: 'Estoy enamorado' },
+      { start: 61.93, end: 66.65, text: 'Te lo quiero confesar' },
+      { start: 66.65, end: 71.28, text: 'Totalmente ilusionado' },
+      { start: 71.28, end: 73.41, text: 'Me la pasó pensándote (todo el tiempo)' },
+      { start: 73.41, end: 76.49, text: 'Nunca voy a soltarte (escucha, W)' },
+      { start: 76.49, end: 78.77, text: 'Quería progreso a la calle le dio un receso' },
+      { start: 78.77, end: 81.10, text: 'Mi voz tenia peso como un corazón preso' },
+      { start: 81.10, end: 83.47, text: 'Ella me libro de todo mal con tan solo un beso' },
+      { start: 83.47, end: 85.98, text: 'Ha sido un proceso, pero el amor ya no da regreso' },
+      { start: 85.98, end: 88.06, text: 'Yo sigo a su lado, su amor es sagrado' },
+      { start: 88.06, end: 90.87, text: 'Tengo muy claro del amor el significado' },
+      { start: 90.87, end: 93.01, text: 'Ella tiene regaño conmigo ha batallado' },
+      { start: 93.01, end: 95.43, text: 'Como dos soldado nos hemos ayudado' },
+      { start: 95.43, end: 99.70, text: 'Estoy enamorado' },
+      { start: 99.70, end: 104.65, text: 'Te lo quiero confesar (yo te lo quería decir)' },
+      { start: 104.65, end: 108.85, text: 'Totalmente ilusionado' },
+      { start: 108.85, end: 111.33, text: 'Me la pasó pensándote' },
+      { start: 111.33, end: 114.45, text: 'Nunca voy a soltarte (princesa)' },
+      { start: 114.45, end: 118.54, text: 'Estoy enamorado' },
+      { start: 118.54, end: 123.45, text: 'Te lo quiero confesar' },
+      { start: 123.45, end: 127.83, text: 'Totalmente ilusionado' },
+      { start: 127.83, end: 130.30, text: 'Me la pasó pensándote' },
+      { start: 130.30, end: 133.21, text: 'Nunca voy a soltarte (hey, doble)' },
+      { start: 133.21, end: 135.89, text: 'Ella tiene la sustancia de la perseverancia' },
+      { start: 135.89, end: 138.07, text: 'Tengo amor en abundancia' },
+      { start: 138.07, end: 140.55, text: 'Princesa, tú has cambiado mi arrogancia' },
+      { start: 140.55, end: 142.89, text: 'Veinticinco problemas, cuarenta circunstancias' },
+      { start: 142.89, end: 144.30, text: 'Y yo te quiero decir' },
+      { start: 144.30, end: 147.60, text: 'Que tu cuerpo quiero consumir sin discutir, ella me empieza a dirigir' },
+      { start: 147.60, end: 150.22, text: 'Me toca y yo me empiezo a derretir (tiene magia)' },
+      { start: 150.22, end: 154.13, text: 'Eres la mujer de mi vida lo tengo que admitir (señores, Yandel)' },
+      { start: 154.13, end: 157.14, text: 'Quisiera estar siempre a tu lado' },
+      { start: 157.14, end: 162.53, text: 'Huir de todo mal (solo quiero que dios me dé la oportunidad)' },
+      { start: 162.53, end: 167.29, text: 'De tu cuerpo un esclavo' },
+      { start: 167.29, end: 171.41, text: 'Y creo que te he demostrado que (presta atención)' },
+      { start: 171.41, end: 175.55, text: 'Estoy enamorado' },
+      { start: 175.55, end: 180.81, text: 'Te lo quiero confesar (W, Yandel)' },
+      { start: 180.81, end: 184.97, text: 'Totalmente ilusionado' },
+      { start: 184.97, end: 187.24, text: 'Me la pasó pensándote' },
+      { start: 187.24, end: 190.26, text: 'Nunca voy a soltarte' },
+      { start: 190.26, end: 194.95, text: 'Estoy enamorado' },
+      { start: 194.95, end: 199.68, text: 'Te lo quiero confesar (W&Y Records)' },
+      { start: 199.68, end: 203.84, text: 'Totalmente ilusionado' },
+      { start: 203.84, end: 206.27, text: 'Me la pasó pensándote' },
+      { start: 206.27, end: 211.69, text: 'Nunca voy a soltarte, eh' },
+      { start: 211.69, end: 213.96, text: 'Evidentemente tiene\' magia' },
+      { start: 213.96, end: 216.56, text: 'Tiene\' la llave de mi corazón en sus manos' },
+      { start: 216.56, end: 220.57, text: '¿Quiénes son?, W, Yandel' },
+      { start: 220.57, end: 221.54, text: 'Víctor \'El Nazi\', Nesty' },
+      { start: 221.54, end: 225.36, text: 'El Profesor Gómez, W&Y Records' },
+      { start: 225.36, end: 228.15, text: 'Señora, te lo tengo que decir' },
+      { start: 228.15, end: 229.19, text: 'Escucha bien' },
+      { start: 229.19, end: 233.11, text: 'Quisiera estar siempre a tu lado' },
+      { start: 233.11, end: 238.60, text: 'Huir de todo mal (de todo mal)' },
+      { start: 238.60, end: 243.26, text: 'De tu cuerpo un esclavo' },
+      { start: 243.26, end: 247.28, text: 'Y creo que te he demostrado que' },
+      { start: 247.28, end: 251.86, text: 'Estoy enamorado' },
+      { start: 251.86, end: 256.71, text: 'Te lo quiero confesar' },
+      { start: 256.71, end: 261.03, text: 'Totalmente ilusionado' },
+      { start: 261.03, end: 263.44, text: 'Me la pasó pensándote' },
+      { start: 263.44, end: 267.63, text: 'Nunca voy a soltarte' }
+    ]
+  },
+  {
+    id: 2,
+    title: "Te Encontré",
+    artist: "El Vega",
+    src: "3-te-encontre.mp3",
+    emoji: "💕",
+    color1: "#ff8577",
+    color2: "#4a1029", 
+    lyrics: [
+      { start: 18.79, end: 20.83, text: 'Quién iba a pensar' },
+      { start: 20.83, end: 22.80, text: 'Que me iba a juiciar' },
+      { start: 22.80, end: 25.95, text: 'Y que algún día yo diría' },
+      { start: 25.95, end: 29.47, text: 'Te encontré, ya encontré' },
+      { start: 29.47, end: 33.52, text: 'La mujer que por tanto tiempo había esperado' },
+      { start: 33.52, end: 37.52, text: 'Y no sé si creer' },
+      { start: 37.52, end: 41.56, text: 'Que en verdad existe, que estoy alucinando' },
+      { start: 41.56, end: 43.50, text: 'No hace falta ver sus alas' },
+      { start: 43.50, end: 47.45, text: 'Pa creer que ella es el ángel que Dios me mandó' },
+      { start: 47.45, end: 49.64, text: 'Pa que me cuidara' },
+      { start: 49.64, end: 53.00, text: 'Y es que esa carita, ese pelo, esa cinturita' },
+      { start: 53.00, end: 57.48, text: 'Esos ojitos tan bonito\', esa boquita rosadita' },
+      { start: 57.48, end: 60.15, text: 'Me hacen sentir el dueño del mundo' },
+      { start: 60.15, end: 62.19, text: 'Ay-ay-ay, quién lo creería' },
+      { start: 62.19, end: 65.99, text: 'Que yo me enamoraría así, así' },
+      { start: 65.99, end: 69.42, text: 'Y es que por ti hago lo que sea, niña linda' },
+      { start: 69.42, end: 70.89, text: 'Porque me has cambiao' },
+      { start: 70.89, end: 74.71, text: 'Y le has dado color a mi vida' },
+      { start: 74.71, end: 78.67, text: 'Definitivamente, de ti estoy enamorao' },
+      { start: 78.67, end: 81.63, text: 'Y no hay nadie que me contradiga' },
+      { start: 81.63, end: 86.19, text: 'Gracias a Dios que me mandó' },
+      { start: 86.19, end: 89.74, text: 'Quien le va a dar sentido a mi vida' },
+      { start: 89.74, end: 94.02, text: 'Ella es, y ella es, y ella es' },
+      { start: 94.02, end: 99.30, text: 'Realmente, el amor de mi vida' },
+      { start: 99.30, end: 101.60, text: 'Te encontré, ya encontré' },
+      { start: 101.60, end: 105.67, text: 'La mujer que por tanto tiempo había esperado' },
+      { start: 105.67, end: 109.40, text: 'Y no sé si creer' },
+      { start: 109.40, end: 113.50, text: 'Que en verdad existe, que estoy alucinando' },
+      { start: 113.50, end: 115.47, text: 'No hace falta ver sus alas' },
+      { start: 115.47, end: 119.39, text: 'Pa creer que ella es el ángel que Dios me mandó' },
+      { start: 119.39, end: 121.56, text: 'Pa que me cuidara' },
+      { start: 121.56, end: 125.02, text: 'Y es que esa carita, ese pelo, esa cinturita' },
+      { start: 125.02, end: 129.41, text: 'Esos ojitos tan bonito\', esa boquita rosadita' },
+      { start: 129.41, end: 132.03, text: 'Me hacen sentir el dueño del mundo' },
+      { start: 132.03, end: 134.18, text: 'Ay-ay-ay, quién lo creería' },
+      { start: 134.18, end: 138.37, text: 'Que yo me enamoraría así, así' },
+      { start: 138.37, end: 142.38, text: 'Y quiero que el resto de mis días sea\' junto a ti' },
+      { start: 142.38, end: 144.39, text: 'Mi vida junto a ti' },
+      { start: 144.39, end: 146.54, text: 'Mi mundo junto a ti' },
+      { start: 146.54, end: 150.42, text: 'Todo, todo, todo, todo, todo mi mundo junto a ti' },
+      { start: 150.42, end: 154.59, text: 'Que te quedes aquí conmigo' },
+      { start: 154.59, end: 158.43, text: 'Uoh-oh-oh, uoh-oh-oh' },
+      { start: 158.43, end: 163.24, text: 'Uoh-oh-oh, oh-oh-oh-oh' },
+      { start: 163.24, end: 166.75, text: 'Uoh-oh-oh, uoh-oh-oh' },
+      { start: 166.75, end: 170.08, text: 'Uoh-oh-oh, oh-oh' },
+      { start: 170.08, end: 173.40, text: 'Te encontré, ya encontré' },
+      { start: 173.40, end: 177.40, text: 'La mujer que por tanto tiempo había esperado' },
+      { start: 177.40, end: 181.43, text: 'Y no sé si creer' },
+      { start: 181.43, end: 185.45, text: 'Que en verdad existe, que estoy alucinando' },
+      { start: 185.45, end: 187.50, text: 'No hace falta ver sus alas' },
+      { start: 187.50, end: 191.35, text: 'Pa creer que ella es el ángel que Dios me mandó' },
+      { start: 191.35, end: 193.58, text: 'Pa que me cuidara' },
+      { start: 193.58, end: 196.95, text: 'Y es que esa carita, ese pelo, esa cinturita' },
+      { start: 196.95, end: 201.45, text: 'Esos ojitos tan bonito\', esa boquita rosadita' },
+      { start: 201.45, end: 204.03, text: 'Me hacen sentir el dueño del mundo' },
+      { start: 204.03, end: 206.16, text: 'Ay-ay-ay, quién lo creería' },
+      { start: 206.16, end: 210.47, text: 'Que yo me enamoraría así (así)' },
+      { start: 210.47, end: 215.70, text: 'Yeh, eh, eh, ah' },
+      { start: 215.70, end: 217.48, text: 'No hizo falta ver tus alas' },
+      { start: 217.48, end: 219.67, text: 'Para saber que eras el ángel' },
+      { start: 219.67, end: 225.56, text: 'Que Dios había enviado para que me cuidaras (this is El Vega)' }
+    ]
+  },
+  {
+    id: 3,
+    title: "Die With A Smile",
+    artist: "Lady Gaga & Bruno Mars",
+    src: "4-die-with-a-smile.mp3",
+    emoji: "💞",
+    color1: "#e8b4b8",
+    color2: "#5c1636", 
+    lyrics: [
+      { start: 3.50, end: 9.27, text: 'Ooh' },
+      { start: 9.27, end: 15.93, text: 'I, I just woke up from a dream<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Yo, acabo de despertar de un sueño</span>' },
+      { start: 15.93, end: 20.45, text: 'Where you and I had to say goodbye<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Donde tú y yo teníamos que despedirnos</span>' },
+      { start: 20.45, end: 25.14, text: 'And I don\'t know what it all means<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Y no sé qué significa todo esto</span>' },
+      { start: 25.14, end: 29.80, text: 'But since I survived, I realized<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Pero ya que sobreviví, me di cuenta</span>' },
+      { start: 29.80, end: 34.28, text: 'Wherever you go, that\'s where I\'ll follow<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Dondequiera que vayas, ahí te seguiré</span>' },
+      { start: 34.28, end: 38.56, text: 'Nobody\'s promised tomorrow<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Nadie tiene prometido el mañana</span>' },
+      { start: 38.56, end: 42.59, text: 'So I\'ma love you every night like it\'s the last night<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Así que te amaré cada noche como si fuera la última</span>' },
+      { start: 42.59, end: 44.85, text: 'Like it\'s the last night<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Como si fuera la última noche</span>' },
+      { start: 44.85, end: 53.94, text: 'If the world was ending, I\'d wanna be next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si el mundo se acabara, quisiera estar junto a ti</span>' },
+      { start: 53.94, end: 63.04, text: 'If the party was over and our time on Earth was through<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si la fiesta terminara y nuestro tiempo en la Tierra se acabara</span>' },
+      { start: 63.04, end: 72.12, text: 'I\'d wanna hold you just for a while and die with a smile<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Quisiera abrazarte un rato y morir con una sonrisa</span>' },
+      { start: 72.12, end: 80.90, text: 'If the world was ending, I\'d wanna be next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si el mundo se acabara, quisiera estar junto a ti</span>' },
+      { start: 80.90, end: 86.56, text: 'Ooh' },
+      { start: 86.56, end: 93.25, text: 'Ooh, lost, lost in the words that we scream<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Ooh, perdidos en las palabras que gritamos</span>' },
+      { start: 93.25, end: 97.96, text: 'I don\'t even wanna do this anymore<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Ya ni siquiera quiero hacer esto</span>' },
+      { start: 97.96, end: 101.80, text: '\'Cause you already know what you mean to me<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Porque ya sabes lo que significas para mí</span>' },
+      { start: 101.80, end: 107.01, text: 'And our love\'s the only war worth fighting for<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Y nuestro amor es la única guerra por la que vale la pena luchar</span>' },
+      { start: 107.01, end: 111.64, text: 'Wherever you go, that\'s where I\'ll follow<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Dondequiera que vayas, ahí te seguiré</span>' },
+      { start: 111.64, end: 115.99, text: 'Nobody\'s promised tomorrow<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Nadie tiene prometido el mañana</span>' },
+      { start: 115.99, end: 120.01, text: 'So I\'ma love you every night like it\'s the last night<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Así que te amaré cada noche como si fuera la última</span>' },
+      { start: 120.01, end: 122.43, text: 'Like it\'s the last night<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Como si fuera la última noche</span>' },
+      { start: 122.43, end: 131.33, text: 'If the world was ending, I\'d wanna be next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si el mundo se acabara, quisiera estar junto a ti</span>' },
+      { start: 131.33, end: 140.54, text: 'If the party was over and our time on Earth was through<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si la fiesta terminara y nuestro tiempo en la Tierra se acabara</span>' },
+      { start: 140.54, end: 145.36, text: 'I\'d wanna hold you just for a while and die with a smile<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Quisiera abrazarte un rato y morir con una sonrisa</span>' },
+      { start: 145.36, end: 158.43, text: 'If the world was ending, I\'d wanna be next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si el mundo se acabara, quisiera estar junto a ti</span>' },
+      { start: 158.43, end: 163.27, text: 'Right next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Justo a tu lado</span>' },
+      { start: 163.27, end: 167.61, text: 'Next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">A tu lado</span>' },
+      { start: 167.61, end: 171.26, text: 'Right next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Justo a tu lado</span>' },
+      { start: 171.26, end: 190.83, text: 'Oh-oh, oh' },
+      { start: 190.83, end: 199.77, text: 'If the world was ending, I\'d wanna be next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si el mundo se acabara, quisiera estar junto a ti</span>' },
+      { start: 199.77, end: 208.81, text: 'If the party was over and our time on Earth was through<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si la fiesta terminara y nuestro tiempo en la Tierra se acabara</span>' },
+      { start: 208.81, end: 218.01, text: 'I\'d wanna hold you just for a while and die with a smile<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Quisiera abrazarte un rato y morir con una sonrisa</span>' },
+      { start: 218.01, end: 227.07, text: 'If the world was ending, I\'d wanna be next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si el mundo se acabara, quisiera estar junto a ti</span>' },
+      { start: 227.07, end: 239.69, text: 'If the world was ending, I\'d wanna be next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Si el mundo se acabara, quisiera estar junto a ti</span>' },
+      { start: 239.69, end: 240.35, text: 'Ooh' },
+      { start: 240.35, end: 252.35, text: 'I\'d wanna be next to you<br><span style="font-size:0.65em; font-weight:normal; opacity:0.85;">Quisiera estar junto a ti</span>' }
+    ]
+  },
+  {
+    id: 4,
+    title: "Déjame Intentar",
+    artist: "Carlos Mata", 
+    src: "5-dejame-intentar.mp3",
+    emoji: "💖",
+    color1: "#ffaecb",
+    color2: "#22040f",
+    lyrics: [
+      { start: 6.32, end: 12.82, text: 'Déjame intentar, conquistar tu amor' },
+      { start: 12.82, end: 19.81, text: 'Me matan las ganas, me matan las ganas' },
+      { start: 19.81, end: 26.48, text: 'Déjame robar, robar tu corazón' },
+      { start: 26.48, end: 33.25, text: 'Y hacerlo muy mío y hacerlo muy mío' },
+      { start: 33.25, end: 40.10, text: 'Hacer que te olvides de amores pasados' },
+      { start: 40.10, end: 47.32, text: 'Y sientas conmigo que nunca has amado' },
+      { start: 47.32, end: 54.46, text: 'Déjame quererte como nunca nadie te ha querido' },
+      { start: 54.46, end: 61.11, text: 'Déjame intentar, déjame intentar' },
+      { start: 61.11, end: 68.00, text: 'Déjame llenar tu vida de ilusión y fantasía' },
+      { start: 68.00, end: 88.87, text: 'Déjame intentar, déjame intentar' },
+      { start: 88.87, end: 94.87, text: 'Déjame saber que tengo tu amor' },
+      { start: 94.87, end: 101.84, text: 'Y que es para siempre, y que es para siempre' },
+      { start: 101.84, end: 108.72, text: 'Déjame poder hacer realidad' },
+      { start: 108.72, end: 115.74, text: 'Mi máximo sueño, mi máximo sueño' },
+      { start: 115.74, end: 122.33, text: 'Hacer que te olvides de amores pasados' },
+      { start: 122.33, end: 129.33, text: 'Y sientas conmigo que nunca has amado' },
+      { start: 129.33, end: 136.50, text: 'Déjame quererte como nunca nadie te ha querido' },
+      { start: 136.50, end: 142.99, text: 'Déjame intentar, déjame intentar' },
+      { start: 142.99, end: 150.35, text: 'Déjame llenar tu vida de ilusión y fantasía' },
+      { start: 150.35, end: 156.87, text: 'Déjame intentar, déjame intentar' },
+      { start: 156.87, end: 163.89, text: 'Déjame quererte como nunca nadie te ha querido' },
+      { start: 163.89, end: 170.23, text: 'Déjame intentar, déjame intentar' },
+      { start: 170.23, end: 177.36, text: 'Déjame llenar tu vida de ilusión y fantasía' },
+      { start: 177.36, end: 215.79, text: 'Déjame intentar, déjame intentar' }
+    ]
+  },
+  {
+    id: 5,
+    title: "La Quiero a Morir",
+    artist: "Francis Cabrel",
+    src: "6-la-quiero-a-morir.mp3",
+    emoji: "💘",
+    color1: "#f472b6",
+    color2: "#3a0a20",
+    lyrics: [
+      { start: 6.42, end: 9.67, text: 'Y yo que, hasta ayer, sólo fui un holgazán' },
+      { start: 9.67, end: 12.65, text: 'Y, hoy, soy el guardián de sus sueños de amor' },
+      { start: 12.65, end: 16.20, text: 'La quiero a morir' },
+      { start: 16.20, end: 19.20, text: 'Podeís destrozar todo aquello que veis' },
+      { start: 19.20, end: 22.33, text: 'Porque ella, de un soplo, lo vuelve a crear' },
+      { start: 22.33, end: 25.45, text: 'Como si nada, como si nada' },
+      { start: 25.45, end: 28.84, text: 'La quiero a morir' },
+      { start: 28.84, end: 31.95, text: 'Ella borra las horas de cada reloj' },
+      { start: 31.95, end: 35.11, text: 'Me enseña a pintar transparente el dolor' },
+      { start: 35.11, end: 38.38, text: 'Con su sonrisa' },
+      { start: 38.38, end: 41.39, text: 'Y levanta una torre desde el cielo hasta aquí' },
+      { start: 41.39, end: 44.51, text: 'Y me cose unas alas y me ayuda a subir' },
+      { start: 44.51, end: 47.71, text: 'A toda prisa, a toda prisa' },
+      { start: 47.71, end: 50.81, text: 'La quiero a morir' },
+      { start: 50.81, end: 54.84, text: 'Conoce bien, cada guerra' },
+      { start: 54.84, end: 57.33, text: 'Cada herida, cada sed' },
+      { start: 57.33, end: 61.13, text: 'Conoce bien, cada guerra' },
+      { start: 61.13, end: 70.45, text: 'De la vida y del amor, también' },
+      { start: 70.45, end: 73.40, text: 'Me dibuja un paisaje y me lo hace vivir' },
+      { start: 73.40, end: 76.43, text: 'En un bosque de lápiz, se apodera de mí' },
+      { start: 76.43, end: 79.90, text: 'La quiero a morir' },
+      { start: 79.90, end: 82.81, text: 'Y me atrapa en un lazo que no aprieta jamás' },
+      { start: 82.81, end: 85.94, text: 'Como un hilo de seda que no puedo soltar' },
+      { start: 85.94, end: 89.08, text: 'No quiero soltar, no quiero soltar' },
+      { start: 89.08, end: 92.37, text: 'La quiero a morir' },
+      { start: 92.37, end: 95.44, text: 'Cuando trepo a sus ojos me enfrento al mar' },
+      { start: 95.44, end: 98.69, text: 'Dos espejos de agua encerrada en cristal' },
+      { start: 98.69, end: 102.03, text: 'La quiero a morir' },
+      { start: 102.03, end: 105.05, text: 'Sólo puedo sentarme, sólo puedo charlar' },
+      { start: 105.05, end: 108.18, text: 'Sólo puedo enredarme, sólo puedo aceptar' },
+      { start: 108.18, end: 111.16, text: 'Ser sólo suyo, sólo suyo' },
+      { start: 111.16, end: 114.66, text: 'La quiero a morir' },
+      { start: 114.66, end: 118.28, text: 'Conoce bien, cada guerra' },
+      { start: 118.28, end: 120.86, text: 'Cada herida, cada sed' },
+      { start: 120.86, end: 124.43, text: 'Conoce bien, cada guerra' },
+      { start: 124.43, end: 133.89, text: 'De la vida, y del amor, también' },
+      { start: 133.89, end: 137.14, text: 'Y yo que, hasta ayer, sólo fui un holgazán' },
+      { start: 137.14, end: 140.11, text: 'Hoy, soy el guardián de sus sueños de amor' },
+      { start: 140.11, end: 143.46, text: 'La quiero a morir' },
+      { start: 143.46, end: 146.39, text: 'Podéis destrozar todo aquello que veis' },
+      { start: 146.39, end: 149.57, text: 'Porque ella, de un soplo, lo vuelve a crear' },
+      { start: 149.57, end: 152.70, text: 'Como si nada, como si nada' },
+      { start: 152.70, end: 163.72, text: 'La quiero a morir' }
+    ]
+  },
+  {
+    id: 6,
+    title: "Sabes",
+    artist: "Reik",
+    src: "7-sabes.mp3",
+    emoji: "💝",
+    color1: "#e0326b",
+    color2: "#2a0714",
+    lyrics: [
+      { start: 13.76, end: 18.47, text: 'Sabes no pido nada más' },
+      { start: 18.47, end: 21.83, text: 'Que estar entre tus brazos' },
+      { start: 21.83, end: 25.25, text: 'Y huir de todo el mal' },
+      { start: 25.25, end: 29.66, text: 'Que a todo he renunciado' },
+      { start: 29.66, end: 33.73, text: 'Por estar junto a ti' },
+      { start: 33.73, end: 38.65, text: 'Sabes no dejo de pensar' },
+      { start: 38.65, end: 41.87, text: 'Estoy enamorado' },
+      { start: 41.87, end: 45.23, text: 'Te quiero confesar' },
+      { start: 45.23, end: 49.64, text: 'Que soy sólo un esclavo' },
+      { start: 49.64, end: 54.66, text: 'Que no sabe vivir sin ti' },
+      { start: 54.66, end: 57.70, text: 'Cuando llegaste tú' },
+      { start: 57.70, end: 60.98, text: 'Te metiste en mi ser' },
+      { start: 60.98, end: 64.54, text: 'Encendiste la luz' },
+      { start: 64.54, end: 67.58, text: 'Me llenaste de fe' },
+      { start: 67.58, end: 70.61, text: 'Tanto tiempo busqué' },
+      { start: 70.61, end: 74.17, text: 'Pero al fin te encontré' },
+      { start: 74.17, end: 81.32, text: 'Tan perfecta como te imaginé no no oh' },
+      { start: 81.32, end: 84.57, text: 'Como aguja en un pajar' },
+      { start: 84.57, end: 87.82, text: 'Te busque sin cesar' },
+      { start: 87.82, end: 91.04, text: 'Como huella en el mar' },
+      { start: 91.04, end: 94.33, text: 'Tan difícil de hallar' },
+      { start: 94.33, end: 97.64, text: 'Tanto tiempo busqué' },
+      { start: 97.64, end: 100.97, text: 'Pero al fin te encontré' },
+      { start: 100.97, end: 105.49, text: 'Tan perfecta' },
+      { start: 105.49, end: 120.87, text: 'Como te imaginé' },
+      { start: 120.87, end: 125.56, text: 'Sabes, te quiero confesar' },
+      { start: 125.56, end: 128.97, text: 'Que te encuentro irresistible' },
+      { start: 128.97, end: 132.24, text: 'No dejo de pensar' },
+      { start: 132.24, end: 136.60, text: 'Que haría lo imposible' },
+      { start: 136.60, end: 143.27, text: 'Por quedarme cerca de ti' },
+      { start: 143.27, end: 146.30, text: 'Cuando llegaste tú' },
+      { start: 146.30, end: 149.76, text: 'Te metiste en mi ser' },
+      { start: 149.76, end: 153.23, text: 'Encendiste la luz' },
+      { start: 153.23, end: 156.42, text: 'Me llenaste de fe' },
+      { start: 156.42, end: 159.57, text: 'Tanto tiempo busqué' },
+      { start: 159.57, end: 163.01, text: 'Pero al fin te encontré' },
+      { start: 163.01, end: 169.96, text: 'Tan perfecta como te imaginé no no oh' },
+      { start: 169.96, end: 173.17, text: 'Como aguja en un pajar' },
+      { start: 173.17, end: 176.63, text: 'Te busqué sin cesar' },
+      { start: 176.63, end: 179.84, text: 'Como huella en el mar' },
+      { start: 179.84, end: 183.08, text: 'Tan difícil de hallar' },
+      { start: 183.08, end: 186.40, text: 'Tanto tiempo busqué' },
+      { start: 186.40, end: 189.67, text: 'Pero al fin te encontré' },
+      { start: 189.67, end: 194.23, text: 'Tan perfecta' },
+      { start: 194.23, end: 203.02, text: 'Como te imaginé' },
+      { start: 203.02, end: 208.04, text: 'Sabes, no pido nada más' },
+      { start: 208.04, end: 220.80, text: 'Que estar entre tus brazos' }
+    ]
+  },
+  {
+    id: 7,
+    title: "La Cosa Más Bella",
+    artist: "Eros Ramazzotti",
+    src: "8-la-cosa-mas-bella.mp3",
+    emoji: "💓",
+    color1: "#ffd7a8",
+    color2: "#5c1636",
+    lyrics: [
+      { start: 20.15, end: 24.08, text: '¿Cómo comenzamos?, yo no lo sé' },
+      { start: 24.08, end: 28.99, text: 'La historia que no tiene fin' },
+      { start: 28.99, end: 32.68, text: 'Ni cómo llegaste a ser la mujer' },
+      { start: 32.68, end: 37.55, text: 'Que toda la vida pedí' },
+      { start: 37.55, end: 43.07, text: 'Contigo hace falta pasión' },
+      { start: 43.07, end: 46.41, text: 'Y un toque de poesía' },
+      { start: 46.41, end: 51.87, text: 'Y sabiduría, pues, yo' },
+      { start: 51.87, end: 55.03, text: 'Trabajo con fantasías' },
+      { start: 55.03, end: 59.24, text: '¿Recuerdas el día que te canté?' },
+      { start: 59.24, end: 63.73, text: 'Fue un súbito escalofrío' },
+      { start: 63.73, end: 68.13, text: 'Por si no lo sabes, te lo diré' },
+      { start: 68.13, end: 72.43, text: 'Yo nunca dejé de sentirlo' },
+      { start: 72.43, end: 78.02, text: 'Contigo hace falta pasión' },
+      { start: 78.02, end: 81.22, text: 'No debe fallar jamás' },
+      { start: 81.22, end: 86.73, text: 'También maestría, pues, yo' },
+      { start: 86.73, end: 89.91, text: 'Trabajo con el corazón' },
+      { start: 89.91, end: 95.40, text: 'Cantar al amor ya no bastará' },
+      { start: 95.40, end: 98.64, text: 'Es poco para mí' },
+      { start: 98.64, end: 104.20, text: 'Si quiero decirte que nunca habrá' },
+      { start: 104.20, end: 108.56, text: 'Cosa más bella que tú' },
+      { start: 108.56, end: 113.04, text: 'Cosa más linda que tú' },
+      { start: 113.04, end: 117.33, text: 'Única como eres' },
+      { start: 117.33, end: 121.99, text: 'Inmensa cuando quieres' },
+      { start: 121.99, end: 129.25, text: 'Gracias, por existir' },
+      { start: 129.25, end: 133.62, text: '¿Cómo comenzamos?, yo no lo sé' },
+      { start: 133.62, end: 137.96, text: 'La historia que toca su fin' },
+      { start: 137.96, end: 142.28, text: 'Que es ese misterio que no se fue' },
+      { start: 142.28, end: 146.68, text: 'Lo llevo aquí dentro de mí' },
+      { start: 146.68, end: 152.08, text: 'Serán los recuerdos que no' },
+      { start: 152.08, end: 155.34, text: 'No dejan pasar la edad' },
+      { start: 155.34, end: 160.87, text: 'Serán las palabras, pues, yo' },
+      { start: 160.87, end: 164.15, text: 'Sabrás mi trabajo es la voz' },
+      { start: 164.15, end: 169.59, text: 'Cantar con amor ya no bastará' },
+      { start: 169.59, end: 172.88, text: 'Es poco para mí' },
+      { start: 172.88, end: 178.29, text: 'Si quiero decirte que nunca habrá' },
+      { start: 178.29, end: 182.78, text: 'Cosa más bella que tú' },
+      { start: 182.78, end: 187.23, text: 'Cosa más linda que tú' },
+      { start: 187.23, end: 191.53, text: 'Única como eres' },
+      { start: 191.53, end: 195.85, text: 'Inmensa cuando quieres' },
+      { start: 195.85, end: 200.37, text: 'Gracias, por existir' },
+      { start: 200.37, end: 202.72, text: 'Oh-oh' },
+      { start: 202.72, end: 205.41, text: 'Oh, babe' },
+      { start: 205.41, end: 208.69, text: 'Uh-uh, uoh' },
+      { start: 208.69, end: 213.99, text: 'Oh-eh' },
+      { start: 213.99, end: 217.64, text: 'Cosa más bella que tú' },
+      { start: 217.64, end: 222.18, text: 'Cosa más linda que tú' },
+      { start: 222.18, end: 226.44, text: 'Única cómo eres' },
+      { start: 226.44, end: 230.77, text: 'Inmensa cuando quieres' },
+      { start: 230.77, end: 236.32, text: 'Gracias, por existir' },
+      { start: 236.32, end: 240.24, text: 'Auh, oh, yeh' },
+      { start: 240.24, end: 243.70, text: 'Gracias, por existir' },
+      { start: 243.70, end: 248.56, text: 'Amé' },
+      { start: 248.56, end: 253.19, text: 'Cosa más bella que tú' },
+      { start: 253.19, end: 254.49, text: 'Que tú' },
+      { start: 254.49, end: 257.18, text: 'Amé' },
+      { start: 257.18, end: 265.65, text: 'Gracias, por existir' }
+    ]
+  },
+  {
+    id: 8,
+    title: "Hasta el Fin del Mundo",
+    artist: "Jennifer Peña",
+    src: "9-hasta-el-fin-del-mundo.mp3",
+    emoji: "💕",
+    color1: "#c084fc",
+    color2: "#22040f",
+    lyrics: [
+      { start: 6.07, end: 8.50, text: 'Tu no te imaginas' },
+      { start: 8.50, end: 12.69, text: 'Lo que siento por ti' },
+      { start: 12.69, end: 15.19, text: 'Como me haces falta' },
+      { start: 15.19, end: 19.21, text: 'Cuando estas lejos de mí' },
+      { start: 19.21, end: 21.71, text: 'Si tú me dejaras' },
+      { start: 21.71, end: 25.79, text: 'No sabría que hacer' },
+      { start: 25.79, end: 28.21, text: 'Cambiaría mi vida' },
+      { start: 28.21, end: 31.47, text: 'Me podría enloquecer' },
+      { start: 31.47, end: 34.79, text: 'Pido a Dios que ese momento' },
+      { start: 34.79, end: 41.42, text: 'Nunca llegue y que proteja nuestro amor' },
+      { start: 41.42, end: 45.44, text: 'Como tú no existen dos' },
+      { start: 45.44, end: 47.36, text: 'Hasta el fin del mundo' },
+      { start: 47.36, end: 48.83, text: 'Te iría a buscar' },
+      { start: 48.83, end: 52.16, text: 'De ti nada me puede separar' },
+      { start: 52.16, end: 54.93, text: 'Cruzaría los siete mares' },
+      { start: 54.93, end: 58.65, text: 'Hasta llegar a ti' },
+      { start: 58.65, end: 60.79, text: 'Hasta el fin del mundo' },
+      { start: 60.79, end: 62.23, text: 'Te seguiré' },
+      { start: 62.23, end: 63.57, text: 'Donde sea que estés' },
+      { start: 63.57, end: 65.34, text: 'Yo te encontraré' },
+      { start: 65.34, end: 68.19, text: 'Nada en mí es más importante' },
+      { start: 68.19, end: 78.45, text: 'Que vivir junto a ti' },
+      { start: 78.45, end: 80.90, text: 'Me da tanto miedo' },
+      { start: 80.90, end: 84.96, text: 'Esta gran necesidad' },
+      { start: 84.96, end: 87.45, text: 'De tenerte siempre' },
+      { start: 87.45, end: 91.44, text: 'Y quererte más y más' },
+      { start: 91.44, end: 94.00, text: 'Es un sentimiento' },
+      { start: 94.00, end: 98.13, text: 'Muy difícil de explicar' },
+      { start: 98.13, end: 100.50, text: 'Lo loca que me pongo' },
+      { start: 100.50, end: 103.94, text: 'Si demoras en llegar' },
+      { start: 103.94, end: 107.12, text: 'Pido a Dios que no me dejes' },
+      { start: 107.12, end: 113.82, text: 'Y por siempre que proteja nuestro amor' },
+      { start: 113.82, end: 117.73, text: 'Como tú no existen dos' },
+      { start: 117.73, end: 119.62, text: 'Hasta el fin del mundo' },
+      { start: 119.62, end: 121.18, text: 'Te iría a buscar' },
+      { start: 121.18, end: 124.68, text: 'De ti nada me puede separar' },
+      { start: 124.68, end: 127.25, text: 'Cruzaría los siete mares' },
+      { start: 127.25, end: 130.91, text: 'Hasta llegar a ti' },
+      { start: 130.91, end: 132.71, text: 'Hasta el fin del mundo' },
+      { start: 132.71, end: 134.31, text: 'Te seguiré' },
+      { start: 134.31, end: 135.86, text: 'Donde sea que estés' },
+      { start: 135.86, end: 137.67, text: 'Yo te encontraré' },
+      { start: 137.67, end: 140.58, text: 'Nada en mí es más importante' },
+      { start: 140.58, end: 147.59, text: 'Que vivir junto a ti' },
+      { start: 147.59, end: 149.91, text: 'Como imaginarme' },
+      { start: 149.91, end: 154.10, text: 'Esta vida sin tu amor' },
+      { start: 154.10, end: 156.00, text: 'Si te necesito' },
+      { start: 156.00, end: 160.61, text: 'Igual que al agua' },
+      { start: 160.61, end: 163.01, text: 'Me derrumbaría' },
+      { start: 163.01, end: 167.36, text: 'Si me dejaras de amar' },
+      { start: 167.36, end: 172.00, text: 'Me harías una herida' },
+      { start: 172.00, end: 188.33, text: 'Mortal, mortal' },
+      { start: 188.33, end: 190.25, text: 'Por eso mi amor' },
+      { start: 190.25, end: 191.96, text: 'Hasta el fin del mundo' },
+      { start: 191.96, end: 193.48, text: 'Te iría a buscar' },
+      { start: 193.48, end: 196.82, text: 'De ti nada me puede separar' },
+      { start: 196.82, end: 199.56, text: 'Cruzaría los siete mares' },
+      { start: 199.56, end: 203.21, text: 'Hasta llegar a ti' },
+      { start: 203.21, end: 205.08, text: 'Hasta el fin del mundo' },
+      { start: 205.08, end: 206.69, text: 'Te seguiré' },
+      { start: 206.69, end: 208.22, text: 'Donde sea que estés' },
+      { start: 208.22, end: 210.08, text: 'Yo te encontraré' },
+      { start: 210.08, end: 212.51, text: 'Nada en mí es más importante' },
+      { start: 212.51, end: 222.17, text: 'Que vivir junto a ti' },
+      { start: 222.17, end: 228.02, text: 'Hasta el fin del mundo' }
+    ]
+  },
+  {
+    id: 9,
+    title: "Promise",
+    artist: "Romeo Santos",
+    src: "10-promise-romeo-santos.mp3",
+    emoji: "💍",
+    color1: "#ff8577",
+    color2: "#3a0714",
+    lyrics: [
+      { start: 15.88, end: 22.23, text: 'He perdido el balance por tu amor' },
+      { start: 22.23, end: 30.33, text: 'En tus manos yo caí, tienes control sobre mí' },
+      { start: 30.33, end: 36.56, text: 'Tu cuerpo es la cárcel y yo un prisionero' },
+      { start: 36.56, end: 44.66, text: 'Y jamás quiero salir, condenado y soy feliz' },
+      { start: 44.66, end: 51.04, text: 'Try to keep my balance but I still fall', translation: 'Trato de mantener el equilibrio, pero aún así caigo' },
+      { start: 51.04, end: 54.86, text: 'But how\'d I fall so hard?', translation: '¿Pero cómo caí tan fuerte?' },
+      { start: 54.86, end: 59.05, text: 'Right into your arms, I swear girl', translation: 'Directo a tus brazos, te lo juro, nena' },
+      { start: 59.05, end: 65.68, text: 'Wrapped inside you, baby, and it\'s so warm, yeah, yeah, yeah', translation: 'Envuelto dentro de ti, bebé, y se siente tan cálido, sí, sí, sí' },
+      { start: 65.68, end: 69.37, text: 'Love without a cause', translation: 'Un amor sin razón' },
+      { start: 69.37, end: 73.05, text: 'Leaves me trapped inside my own bars', translation: 'Me deja atrapado dentro de mis propias rejas' },
+      { start: 73.05, end: 80.14, text: 'Quiero ser tuyo, enterito, pero tengo miedo' },
+      { start: 80.14, end: 85.49, text: 'Prométeme que no me vas a dejar sin tu amor' },
+      { start: 85.49, end: 87.67, text: '(Talk to her Usher)', translation: '(Háblale, Usher)' },
+      { start: 87.67, end: 91.89, text: 'I\'ll give you my heart, girl, but you\'ve gotta promise', translation: 'Te daré mi corazón, nena, pero tienes que prometerme' },
+      { start: 91.89, end: 93.94, text: 'Prométeme, mami' },
+      { start: 93.94, end: 96.30, text: 'Promise you\'ll hold me (Hold me)', translation: 'Prométeme que me abrazarás (Abrázame)' },
+      { start: 96.30, end: 98.27, text: 'Touch me (Touch me)', translation: 'Tócame (Tócame)' },
+      { start: 98.27, end: 100.14, text: 'Love me', translation: 'Ámame' },
+      { start: 100.14, end: 102.73, text: 'Way past forever', translation: 'Mucho más allá del para siempre' },
+      { start: 102.73, end: 105.24, text: 'Hasta siempre' },
+      { start: 105.24, end: 112.49, text: 'Escucha las palabras de Romeo' },
+      { start: 112.49, end: 113.49, text: 'Yeah, man', translation: 'Sí, hombre' },
+      { start: 113.49, end: 116.14, text: 'Usher, baby' },
+      { start: 116.14, end: 116.94, text: 'Romeo' },
+      { start: 116.94, end: 123.13, text: 'Yo tan joven padezco del corazón' },
+      { start: 123.13, end: 129.17, text: 'Y por tu amor sufriría mil años y con mucho honor' },
+      { start: 129.17, end: 131.15, text: 'Don\'t doubt it baby', translation: 'No lo dudes, nena' },
+      { start: 131.15, end: 134.99, text: 'Trying to be calm but my chest keeps pounding', translation: 'Trato de estar calmado, pero mi pecho sigue latiendo fuerte' },
+      { start: 134.99, end: 137.90, text: 'Try to swim but it\'s like I\'m drowning', translation: 'Trato de nadar, pero es como si me ahogara' },
+      { start: 137.90, end: 143.10, text: 'All I\'ve got for you, love', translation: 'Todo lo que tengo es para ti, amor' },
+      { start: 143.10, end: 145.42, text: 'Oh baby', translation: 'Oh, nena' },
+      { start: 145.42, end: 152.43, text: 'Quiero ser tuyo enterito pero tengo miedo' },
+      { start: 152.43, end: 157.79, text: 'Prométeme que no me vas a dejar sin tu amor' },
+      { start: 157.79, end: 159.81, text: '(Usher)' },
+      { start: 159.81, end: 164.07, text: 'I\'ll give you my heart, girl, but you\'ve gotta promise', translation: 'Te daré mi corazón, nena, pero tienes que prometerme' },
+      { start: 164.07, end: 166.19, text: 'Prométeme, mami' },
+      { start: 166.19, end: 168.70, text: 'Promise you\'ll hold me (Hold me)', translation: 'Prométeme que me abrazarás (Abrázame)' },
+      { start: 168.70, end: 170.50, text: 'Touch me (Touch me)', translation: 'Tócame (Tócame)' },
+      { start: 170.50, end: 172.26, text: 'Love me', translation: 'Ámame' },
+      { start: 172.26, end: 176.56, text: 'Way past forever', translation: 'Mucho más allá del para siempre' },
+      { start: 176.56, end: 180.20, text: 'You need this in your life', translation: 'Necesitas esto en tu vida' },
+      { start: 180.20, end: 182.06, text: 'Yeah, man', translation: 'Sí, hombre' },
+      { start: 182.06, end: 183.77, text: 'Two kings', translation: 'Dos reyes' },
+      { start: 183.77, end: 187.41, text: 'Revolutionary', translation: 'Revolucionario' },
+      { start: 187.41, end: 190.29, text: 'Hey yo Romeo, talk to her (Hey)', translation: 'Oye, Romeo, háblale (Hey)' },
+      { start: 190.29, end: 197.86, text: 'Temo que me dejes en el abandono' },
+      { start: 197.86, end: 202.19, text: 'Y tú eres mi oxígeno y mi todo' },
+      { start: 202.19, end: 208.17, text: 'But I realize that it\'s worth running the race', translation: 'Pero me doy cuenta de que vale la pena correr la carrera' },
+      { start: 208.17, end: 210.39, text: 'When the finish line is you', translation: 'Cuando la meta eres tú' },
+      { start: 210.39, end: 217.27, text: 'Quiero ser tuyo, enterito, pero tengo miedo' },
+      { start: 217.27, end: 224.56, text: 'Prométeme que no me vas a dejar sin tu amor' },
+      { start: 224.56, end: 229.20, text: 'If I give you my heart, girl, you\'ve gotta promise', translation: 'Si te doy mi corazón, nena, tienes que prometerme' },
+      { start: 229.20, end: 231.19, text: '(Promise that you\'ll love me, baby)', translation: '(Prométeme que me amarás, bebé)' },
+      { start: 231.19, end: 233.91, text: 'Promise you\'ll hold me', translation: 'Prométeme que me abrazarás' },
+      { start: 233.91, end: 235.47, text: 'Touch me (Touch me)', translation: 'Tócame (Tócame)' },
+      { start: 235.47, end: 237.26, text: 'Love me', translation: 'Ámame' },
+      { start: 237.26, end: 239.15, text: 'Way past forever', translation: 'Mucho más allá del para siempre' },
+      { start: 239.15, end: 244.39, text: 'Quiero ser tuyo, enterito, pero tengo miedo' },
+      { start: 244.39, end: 246.44, text: '(Turn the lights off)', translation: '(Apaga las luces)' },
+      { start: 246.44, end: 254.72, text: 'Prométeme que no me vas a dejar sin tu amor' }
+    ]
+  },
+  {
+    id: 10,
+    title: "Día de Suerte",
+    artist: "Alejandra Guzmán",
+    src: "11-dia-de-suerte-alejandra-guzman.mp3",
+    emoji: "🍀",
+    color1: "#ffaecb",
+    color2: "#42081f",
+    lyrics: [
+      { start: 12.13, end: 15.60, text: 'Tengo un pobre corazón' },
+      { start: 15.60, end: 20.97, text: 'Que a veces se rompió, se apagó' },
+      { start: 20.97, end: 24.27, text: 'Pero nunca se rindió' },
+      { start: 24.27, end: 27.49, text: 'Entre estrellas de cartón' },
+      { start: 27.49, end: 32.91, text: 'Perdí la ilusión' },
+      { start: 32.91, end: 40.32, text: 'Que llegara un ángel, me levante y que me pida que lo ame' },
+      { start: 40.32, end: 43.56, text: 'Y de pronto un día de suerte' },
+      { start: 43.56, end: 47.00, text: 'Se me hizo conocerte' },
+      { start: 47.00, end: 50.33, text: 'Y te cruzaste en mi camino' },
+      { start: 50.33, end: 53.42, text: 'Ahora creo en el destino' },
+      { start: 53.42, end: 56.25, text: 'Tenerte' },
+      { start: 56.25, end: 62.89, text: 'Por siempre conmigo' },
+      { start: 62.89, end: 67.37, text: 'Pero más suerte es quererte tanto' },
+      { start: 67.37, end: 75.17, text: 'Y que tú sientas lo mismo' },
+      { start: 75.17, end: 78.49, text: 'Dicen que este loco amor' },
+      { start: 78.49, end: 83.93, text: 'No tiene solución' },
+      { start: 83.93, end: 89.34, text: 'Que tu mundo y mi mundo no' },
+      { start: 89.34, end: 93.24, text: 'Que tu mundo y mi mundo no' },
+      { start: 93.24, end: 96.51, text: 'Entre estrellas de cartón' },
+      { start: 96.51, end: 101.84, text: 'Perdí la ilusión' },
+      { start: 101.84, end: 109.42, text: 'Que llegara un ángel, me levante y que me pida que lo ame' },
+      { start: 109.42, end: 114.21, text: 'Y de pronto un día de suerte' },
+      { start: 114.21, end: 116.11, text: 'Se me hizo conocerte' },
+      { start: 116.11, end: 119.46, text: 'Y te cruzaste en mi camino' },
+      { start: 119.46, end: 122.43, text: 'Ahora creo en el destino' },
+      { start: 122.43, end: 125.17, text: 'Tenerte' },
+      { start: 125.17, end: 131.87, text: 'Por siempre conmigo' },
+      { start: 131.87, end: 136.33, text: 'Pero más suerte es quererte tanto' },
+      { start: 136.33, end: 151.58, text: 'Y que tú sientas lo mismo' },
+      { start: 151.58, end: 154.43, text: 'Y de pronto un día de suerte' },
+      { start: 154.43, end: 158.07, text: 'Se me hizo conocerte' },
+      { start: 158.07, end: 161.49, text: 'Y te cruzaste en mi camino' },
+      { start: 161.49, end: 164.37, text: 'Ahora creo en el destino' },
+      { start: 164.37, end: 167.27, text: 'Tenerte' },
+      { start: 167.27, end: 181.26, text: 'Por siempre conmigo' },
+      { start: 181.26, end: 187.27, text: 'Pero más suerte es quererte tanto' },
+      { start: 187.27, end: 199.85, text: 'Y que tú sientas lo mismo' }
+    ]
+  },
+  {
+    id: 11,
+    title: "Until I Found You",
+    artist: "Stephen Sanchez",
+    src: "12-until-i-found-you.mp3",
+    emoji: "💫",
+    color1: "#e0326b",
+    color2: "#1c0410",
+    lyrics: [
+      { start: 10.85, end: 16.78, text: 'Georgia, wrap me up in all your', translation: 'Georgia, envuélveme en todo tu calor' },
+      { start: 16.78, end: 22.51, text: 'I want you in my arms', translation: 'Te quiero en mis brazos' },
+      { start: 22.51, end: 27.90, text: 'Oh, let me hold you', translation: 'Oh, déjame abrazarte' },
+      { start: 27.90, end: 33.78, text: 'I\'ll never let you go again like I did', translation: 'Nunca volveré a dejarte ir como lo hice' },
+      { start: 33.78, end: 37.36, text: 'Oh, I used to say', translation: 'Oh, solía decir' },
+      { start: 37.36, end: 44.34, text: 'I would never fall in love again until I found her', translation: 'Que nunca volvería a enamorarme hasta que la encontré' },
+      { start: 44.34, end: 51.45, text: 'I said, "I would never fall unless it\'s you I fall into"', translation: 'Dije: "Nunca caería a menos que fueras tú en quien cayera"' },
+      { start: 51.45, end: 58.38, text: 'I was lost within the darkness, but then I found her', translation: 'Estaba perdido en la oscuridad, pero entonces la encontré' },
+      { start: 58.38, end: 67.84, text: 'I found you', translation: 'Te encontré' },
+      { start: 67.84, end: 73.98, text: 'Georgia, pulled me in, I asked to', translation: 'Georgia, me atrajo hacia ella, y le pedí' },
+      { start: 73.98, end: 79.45, text: 'Love her once again', translation: 'Amarla una vez más' },
+      { start: 79.45, end: 84.88, text: 'You fell, I caught you', translation: 'Caíste, y yo te atrapé' },
+      { start: 84.88, end: 90.59, text: 'I\'ll never let you go again like I did', translation: 'Nunca volveré a dejarte ir como lo hice' },
+      { start: 90.59, end: 94.34, text: 'Oh, I used to say', translation: 'Oh, solía decir' },
+      { start: 94.34, end: 101.18, text: 'I would never fall in love again until I found her', translation: 'Que nunca volvería a enamorarme hasta que la encontré' },
+      { start: 101.18, end: 108.49, text: 'I said, "I would never fall unless it\'s you I fall into"', translation: 'Dije: "Nunca caería a menos que fueras tú en quien cayera"' },
+      { start: 108.49, end: 115.20, text: 'I was lost within the darkness, but then I found her', translation: 'Estaba perdido en la oscuridad, pero entonces la encontré' },
+      { start: 115.20, end: 137.40, text: 'I found you', translation: 'Te encontré' },
+      { start: 137.40, end: 144.09, text: 'I would never fall in love again until I found her', translation: 'Nunca volvería a enamorarme hasta que la encontré' },
+      { start: 144.09, end: 151.26, text: 'I said, "I would never fall unless it\'s you I fall into"', translation: 'Dije: "Nunca caería a menos que fueras tú en quien cayera"' },
+      { start: 151.26, end: 158.01, text: 'I was lost within the darkness, but then I found her', translation: 'Estaba perdido en la oscuridad, pero entonces la encontré' },
+      { start: 158.01, end: 175.96, text: 'I found you', translation: 'Te encontré' }
+    ]
+  },
+  {
+    id: 12,
+    title: "We Don't Talk Anymore",
+    artist: "Charlie Puth ft. Selena Gomez",
+    src: "13-we-dont-talk-anymore.mp3",
+    emoji: "🥀",
+    color1: "#c084fc",
+    color2: "#1c0410",
+    lyrics: [
+      { start: 1.90, end: 3.85, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 3.85, end: 6.26, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 6.26, end: 7.80, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 7.80, end: 11.04, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 11.04, end: 13.46, text: 'We don\'t love anymore', translation: 'Ya no nos amamos' },
+      { start: 13.46, end: 15.65, text: 'What was all of it for?', translation: '¿Para qué fue todo esto?' },
+      { start: 15.65, end: 17.39, text: 'Oh, we don\'t talk anymore', translation: 'Oh, ya no hablamos' },
+      { start: 17.39, end: 20.65, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 20.65, end: 24.10, text: 'I just heard you found the one you\'ve been looking', translation: 'Acabo de escuchar que encontraste a quien buscabas' },
+      { start: 24.10, end: 26.71, text: 'You\'ve been looking for', translation: 'A quien has estado buscando' },
+      { start: 26.71, end: 30.36, text: 'I wish I would have known that wasn\'t me', translation: 'Ojalá hubiera sabido que no era yo' },
+      { start: 30.36, end: 33.69, text: '\'Cause even after all this time, I still wonder', translation: 'Porque incluso después de todo este tiempo, todavía me pregunto' },
+      { start: 33.69, end: 36.08, text: 'Why I can\'t move on', translation: 'Por qué no puedo seguir adelante' },
+      { start: 36.08, end: 40.19, text: 'Just the way you did so easily', translation: 'Así como tú lo hiciste tan fácilmente' },
+      { start: 40.19, end: 41.82, text: 'Don\'t wanna know', translation: 'No quiero saber' },
+      { start: 41.82, end: 44.24, text: 'Kind of dress you\'re wearing tonight', translation: 'Qué vestido llevas puesto esta noche' },
+      { start: 44.24, end: 46.72, text: 'If he\'s holding onto you so tight', translation: 'Si él te está abrazando tan fuerte' },
+      { start: 46.72, end: 49.79, text: 'The way I did before', translation: 'Como yo lo hacía antes' },
+      { start: 49.79, end: 51.54, text: 'I overdosed', translation: 'Tuve una sobredosis' },
+      { start: 51.54, end: 53.92, text: 'Should\'ve known your love was a game', translation: 'Debí saber que tu amor era un juego' },
+      { start: 53.92, end: 56.30, text: 'Now I can\'t get you out of my brain', translation: 'Ahora no puedo sacarte de mi mente' },
+      { start: 56.30, end: 58.96, text: 'Oh, it\'s such a shame', translation: 'Oh, es una lástima' },
+      { start: 58.96, end: 61.44, text: 'That we don\'t talk anymore', translation: 'Que ya no hablemos' },
+      { start: 61.44, end: 63.91, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 63.91, end: 65.43, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 65.43, end: 68.60, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 68.60, end: 71.08, text: 'We don\'t love anymore', translation: 'Ya no nos amamos' },
+      { start: 71.08, end: 72.91, text: 'What was all of it for?', translation: '¿Para qué fue todo esto?' },
+      { start: 72.91, end: 75.02, text: 'Oh, we don\'t talk anymore', translation: 'Oh, ya no hablamos' },
+      { start: 75.02, end: 78.23, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 78.23, end: 81.66, text: 'I just hope you\'re lying next to somebody', translation: 'Solo espero que estés junto a alguien' },
+      { start: 81.66, end: 84.08, text: 'Who knows how to love you like me', translation: 'Que sepa amarte como yo' },
+      { start: 84.08, end: 87.73, text: 'There must be a good reason that you\'re gone', translation: 'Debe haber una buena razón por la que te fuiste' },
+      { start: 87.73, end: 91.64, text: 'Every now and then I think you might want me to', translation: 'De vez en cuando pienso que tal vez quieres que' },
+      { start: 91.64, end: 93.67, text: 'Come show up at your door', translation: 'Aparezca en tu puerta' },
+      { start: 93.67, end: 97.73, text: 'But I\'m just too afraid that I\'ll be wrong', translation: 'Pero tengo demasiado miedo de estar equivocado' },
+      { start: 97.73, end: 99.46, text: 'Don\'t wanna know', translation: 'No quiero saber' },
+      { start: 99.46, end: 101.95, text: 'If you\'re looking into her eyes', translation: 'Si estás mirando sus ojos' },
+      { start: 101.95, end: 104.33, text: 'If she\'s holding onto you so tight', translation: 'Si ella te está abrazando tan fuerte' },
+      { start: 104.33, end: 107.42, text: 'The way I did before', translation: 'Como yo lo hacía antes' },
+      { start: 107.42, end: 109.14, text: 'I overdosed', translation: 'Tuve una sobredosis' },
+      { start: 109.14, end: 111.43, text: 'Should\'ve known your love was a game', translation: 'Debí saber que tu amor era un juego' },
+      { start: 111.43, end: 113.88, text: 'Now I can\'t get you out of my brain', translation: 'Ahora no puedo sacarte de mi mente' },
+      { start: 113.88, end: 116.57, text: 'Oh, it\'s such a shame', translation: 'Oh, es una lástima' },
+      { start: 116.57, end: 119.11, text: 'That we don\'t talk anymore', translation: 'Que ya no hablemos' },
+      { start: 119.11, end: 121.47, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 121.47, end: 123.06, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 123.06, end: 126.21, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 126.21, end: 128.64, text: 'We don\'t love anymore', translation: 'Ya no nos amamos' },
+      { start: 128.64, end: 130.87, text: 'What was all of it for?', translation: '¿Para qué fue todo esto?' },
+      { start: 130.87, end: 132.63, text: 'Oh, we don\'t talk anymore', translation: 'Oh, ya no hablamos' },
+      { start: 132.63, end: 145.05, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 145.05, end: 155.20, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 155.20, end: 156.88, text: 'Don\'t wanna know', translation: 'No quiero saber' },
+      { start: 156.88, end: 159.57, text: 'Kind of dress you\'re wearing tonight', translation: 'Qué vestido llevas puesto esta noche' },
+      { start: 159.57, end: 161.94, text: 'If he\'s giving it to you just right', translation: 'Si él te lo está dando justo como te gusta' },
+      { start: 161.94, end: 164.98, text: 'The way I did before', translation: 'Como yo lo hacía antes' },
+      { start: 164.98, end: 166.84, text: 'I overdosed', translation: 'Tuve una sobredosis' },
+      { start: 166.84, end: 169.05, text: 'Should\'ve known your love was a game', translation: 'Debí saber que tu amor era un juego' },
+      { start: 169.05, end: 171.63, text: 'Now I can\'t get you out of my brain', translation: 'Ahora no puedo sacarte de mi mente' },
+      { start: 171.63, end: 174.33, text: 'Oh, it\'s such a shame', translation: 'Oh, es una lástima' },
+      { start: 174.33, end: 176.62, text: 'That we don\'t talk anymore', translation: 'Que ya no hablemos' },
+      { start: 176.62, end: 179.08, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 179.08, end: 180.69, text: 'We don\'t talk anymore', translation: 'Ya no hablamos' },
+      { start: 180.69, end: 183.79, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 183.79, end: 186.17, text: 'We don\'t love anymore', translation: 'Ya no nos amamos' },
+      { start: 186.17, end: 188.17, text: 'What was all of it for?', translation: '¿Para qué fue todo esto?' },
+      { start: 188.17, end: 190.16, text: 'Oh, we don\'t talk anymore', translation: 'Oh, ya no hablamos' },
+      { start: 190.16, end: 193.45, text: 'Like we used to do', translation: 'Como solíamos hacerlo' },
+      { start: 193.45, end: 197.90, text: 'We don\'t talk anymore (don\'t wanna know)', translation: 'Ya no hablamos (no quiero saber)' },
+      { start: 197.90, end: 198.46, text: 'Kind of dress you\'re wearing tonight (oh)', translation: 'Qué vestido llevas puesto esta noche (oh)' },
+      { start: 198.46, end: 200.54, text: 'If he\'s holding onto you so tight (oh)', translation: 'Si él te está abrazando tan fuerte (oh)' },
+      { start: 200.54, end: 203.57, text: 'The way I did before', translation: 'Como yo lo hacía antes' },
+      { start: 203.57, end: 205.59, text: 'We don\'t talk anymore (I overdosed)', translation: 'Ya no hablamos (tuve una sobredosis)' },
+      { start: 205.59, end: 207.73, text: 'Should\'ve known your love was a game (oh)', translation: 'Debí saber que tu amor era un juego (oh)' },
+      { start: 207.73, end: 210.22, text: 'Now I can\'t get you out of my brain (whoa)', translation: 'Ahora no puedo sacarte de mi mente (whoa)' },
+      { start: 210.22, end: 212.82, text: 'Oh, it\'s such a shame', translation: 'Oh, es una lástima' },
+      { start: 212.82, end: 223.98, text: 'That we don\'t talk anymore', translation: 'Que ya no hablemos' }
+    ]
+  },
+  {
+    id: 13,
+    title: "No Se Va",
+    artist: "Grupo Frontera",
+    src: "14-no-se-va.mp3",
+    emoji: "🤠",
+    color1: "#ff8577",
+    color2: "#3a0714",
+    lyrics: []
+  }
+];
+
+let currentTrackIndex = 0;
+let lyricsData = tracks[currentTrackIndex].lyrics;
+let isSeeking = false;
+let isLoopRunning = false;
+let activeLineIndex = -1;
+
+const letterScreen = document.getElementById('letter-screen');
+const playerScreen = document.getElementById('player-screen');
+const waxSeal = document.getElementById('wax-seal');
+const hintText = document.getElementById('hint-text');
+const btnGotoMusic = document.getElementById('btn-goto-music');
+
+// ===== Contador "Nuestro tiempo juntos" =====
+const TOGETHER_START = new Date('2015-09-30T00:00:00');
+const counterDays = document.getElementById('counter-days');
+const counterHours = document.getElementById('counter-hours');
+const counterMinutes = document.getElementById('counter-minutes');
+const counterSeconds = document.getElementById('counter-seconds');
+
+function updateTogetherCounter() {
+  if (!counterDays) return;
+  const diff = Math.max(0, Date.now() - TOGETHER_START.getTime());
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  counterDays.textContent = days.toLocaleString('es-ES');
+  counterHours.textContent = String(hours).padStart(2, '0');
+  counterMinutes.textContent = String(minutes).padStart(2, '0');
+  counterSeconds.textContent = String(seconds).padStart(2, '0');
+}
+updateTogetherCounter();
+setInterval(updateTogetherCounter, 1000);
+
+const audioTrack = document.getElementById('audio-track');
+const btnPlayPause = document.getElementById('btn-play-pause');
+const playIcon = document.getElementById('play-icon');
+const pauseIcon = document.getElementById('pause-icon');
+const progressBar = document.getElementById('progress-bar');
+const timeCurrent = document.getElementById('time-current');
+const timeTotal = document.getElementById('time-total');
+const volumeBar = document.getElementById('volume-bar');
+const btnMute = document.getElementById('btn-mute');
+const volumeIcon = document.getElementById('volume-icon');
+const muteIcon = document.getElementById('mute-icon');
+
+const vinylDisc = document.getElementById('vinyl-disc');
+const vinylCenter = document.getElementById('vinyl-center');
+const vinylEmoji = document.getElementById('vinyl-emoji');
+const needleArm = document.getElementById('needle-arm');
+const vinylAura = document.getElementById('vinyl-aura');
+const lyricsWindow = document.getElementById('lyrics-window');
+const playlistContainer = document.getElementById('playlist-container');
+const btnRewind = document.getElementById('btn-rewind');
+const btnForward = document.getElementById('btn-forward');
+
+audioTrack.volume = 0.8;
+
+const audioStatus = document.getElementById('audio-status');
+function showAudioStatus(msg) {
+  audioStatus.textContent = msg;
+  audioStatus.classList.remove('hidden');
+}
+function hideAudioStatus() {
+  audioStatus.classList.add('hidden');
+}
+audioTrack.addEventListener('error', () => {
+  const track = tracks[currentTrackIndex];
+  showAudioStatus(`No se encontró el archivo "${track.src}". Revisa que esté en la raíz del repositorio (junto al index.html) con ese nombre exacto.`);
+});
+
+waxSeal.addEventListener('click', () => {
+  const envContainer = document.getElementById('envelope-container');
+  envContainer.classList.add('open');
+  waxSeal.style.opacity = '0';
+  waxSeal.style.pointerEvents = 'none';
+  hintText.style.opacity = '0';
+  audioTrack.load();
+  setTimeout(() => {
+    btnGotoMusic.classList.remove('hidden');
+    btnGotoMusic.classList.add('flex');
+  }, 1300);
+});
+
+btnGotoMusic.addEventListener('click', () => {
+  renderPlaylist();
+  loadTrack(0, true);
+  letterScreen.classList.add('opacity-0');
+  setTimeout(() => {
+    letterScreen.classList.add('hidden');
+    playerScreen.classList.remove('hidden');
+    playerScreen.clientHeight;
+    playerScreen.classList.remove('opacity-0', 'translate-y-8');
+  }, 800);
+});
+
+function loadTrack(index, autoplay = false) {
+  currentTrackIndex = index;
+  const track = tracks[index];
+
+  // Evita el "clic" o medio segundo de audio residual de la canción anterior
+  audioTrack.pause();
+  audioTrack.currentTime = 0;
+  audioTrack.src = track.src;
+  audioTrack.load();
+
+  document.getElementById('track-title').textContent = track.title;
+  document.getElementById('track-artist').textContent = track.artist;
+  vinylEmoji.textContent = track.emoji;
+
+  vinylDisc.style.background = `radial-gradient(circle, ${track.color1} 0%, ${track.color2} 100%)`;
+  vinylCenter.style.background = `linear-gradient(to top right, ${track.color1}, ${track.color2})`;
+
+  progressBar.value = 0;
+  timeCurrent.textContent = "0:00";
+  timeTotal.textContent = "0:00";
+
+  lyricsData = track.lyrics;
+  activeLineIndex = -1;
+  initKaraoke();
+  updatePlaylistUI();
+
+  if (autoplay) {
+    playAudio();
+  } else {
+    pauseAudio();
+  }
+}
+
+function renderPlaylist() {
+  playlistContainer.innerHTML = '';
+  tracks.forEach((track, index) => {
+    const item = document.createElement('div');
+    item.className = `playlist-item flex items-center justify-between p-2 pl-3 rounded-xl cursor-pointer hover:bg-white/10 active:scale-[0.98] transition-all duration-300 border border-transparent fade-up`;
+    item.style.animationDelay = `${index * 0.06}s`;
+    item.style.borderLeft = `3px solid ${track.color1}`;
+    item.id = `playlist-item-${index}`;
+    item.innerHTML = `
+      <div class="flex items-center gap-2.5">
+        <span class="text-xs font-bold select-none w-6 h-6 flex items-center justify-center rounded-full" style="color:${track.color1};background:${track.color1}26">${index + 1}</span>
+        <span class="text-base leading-none select-none">${track.emoji}</span>
+        <div class="text-left">
+          <p class="text-xs font-bold text-white tracking-wide truncate max-w-[140px] sm:max-w-[170px]">${track.title}</p>
+          <p class="text-[9px] text-white/50 truncate max-w-[140px] sm:max-w-[170px]">${track.artist}</p>
+        </div>
+      </div>
+      <div id="eq-${index}" class="hidden flex items-end gap-[2px] h-4 pr-1">
+        <div class="w-[2.5px] h-1.5 rounded-full eq-bar-1" style="background:var(--rosa-fuchsia)"></div>
+        <div class="w-[2.5px] h-3 rounded-full eq-bar-2" style="background:var(--rosa-soft)"></div>
+        <div class="w-[2.5px] h-2.5 rounded-full eq-bar-3" style="background:var(--rosa-fuchsia)"></div>
+      </div>`;
+    item.addEventListener('click', () => {
+      if (currentTrackIndex !== index) {
+        loadTrack(index, true);
+        spawnBurstHeartsAt(item);
+      } else {
+        audioTrack.paused ? playAudio() : pauseAudio();
+      }
+    });
+    playlistContainer.appendChild(item);
+  });
+}
+
+function updatePlaylistUI() {
+  tracks.forEach((_, index) => {
+    const item = document.getElementById(`playlist-item-${index}`);
+    const eq = document.getElementById(`eq-${index}`);
+    if (item) {
+      if (index === currentTrackIndex) {
+        item.style.background = 'rgba(255,79,129,0.15)';
+        item.style.boxShadow = '0 0 15px rgba(255,79,129,0.2), inset 0 0 0 1px rgba(255,79,129,0.3)';
+        if (eq && !audioTrack.paused) eq.classList.remove('hidden');
+      } else {
+        item.style.background = '';
+        item.style.boxShadow = '';
+        if (eq) eq.classList.add('hidden');
+      }
+    }
+  });
+}
+
+function formatTime(sec) {
+  if (!sec || isNaN(sec)) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function startLoop() { if (!isLoopRunning) { isLoopRunning = true; tick(); } }
+function stopLoop() { isLoopRunning = false; }
+function tick() {
+  if (!isLoopRunning) return;
+  updateKaraokeAndPainting(audioTrack.currentTime);
+  requestAnimationFrame(tick);
+}
+
+function playAudio() {
+  audioTrack.play().then(() => {
+    hideAudioStatus();
+    playIcon.classList.add('hidden');
+    pauseIcon.classList.remove('hidden');
+    vinylDisc.classList.remove('paused-spin');
+    needleArm.style.transform = 'rotate(15deg)';
+    vinylAura.classList.remove('scale-95');
+    vinylAura.classList.add('scale-105', 'opacity-100');
+    startLoop();
+    updatePlaylistUI();
+  }).catch(e => {
+    console.log("No se pudo reproducir:", e);
+    showAudioStatus('Toca ▶ para escuchar (el navegador bloqueó la reproducción automática).');
+  });
+}
+
+function pauseAudio() {
+  audioTrack.pause();
+  playIcon.classList.remove('hidden');
+  pauseIcon.classList.add('hidden');
+  vinylDisc.classList.add('paused-spin');
+  needleArm.style.transform = 'rotate(-20deg)';
+  vinylAura.classList.remove('scale-105', 'opacity-100');
+  vinylAura.classList.add('scale-95');
+  stopLoop();
+  updatePlaylistUI();
+}
+
+btnPlayPause.addEventListener('click', () => audioTrack.paused ? playAudio() : pauseAudio());
+vinylDisc.addEventListener('click', () => audioTrack.paused ? playAudio() : pauseAudio());
+
+// ===== Reproducción aleatoria (shuffle), como Spotify =====
+const btnShuffle = document.getElementById('btn-shuffle');
+let isShuffleOn = false;
+let shuffleQueue = [];
+let shuffleHistory = [];
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildShuffleQueue(excludeIndex) {
+  const idxs = tracks.map((_, i) => i).filter((i) => i !== excludeIndex);
+  return shuffleArray(idxs);
+}
+
+btnShuffle.addEventListener('click', () => {
+  isShuffleOn = !isShuffleOn;
+  if (isShuffleOn) {
+    shuffleQueue = buildShuffleQueue(currentTrackIndex);
+    shuffleHistory = [currentTrackIndex];
+    btnShuffle.style.color = 'var(--rosa-fuchsia)';
+    btnShuffle.style.background = 'rgba(255,79,129,0.18)';
+  } else {
+    shuffleQueue = [];
+    shuffleHistory = [];
+    btnShuffle.style.color = '';
+    btnShuffle.style.background = '';
+  }
+});
+
+function getNextIndex() {
+  if (isShuffleOn) {
+    if (shuffleQueue.length === 0) shuffleQueue = buildShuffleQueue(currentTrackIndex);
+    shuffleHistory.push(currentTrackIndex);
+    return shuffleQueue.shift();
+  }
+  let nextIndex = currentTrackIndex + 1;
+  if (nextIndex >= tracks.length) nextIndex = 0;
+  return nextIndex;
+}
+
+function getPrevIndex() {
+  if (isShuffleOn) {
+    if (shuffleHistory.length > 0) return shuffleHistory.pop();
+    return buildShuffleQueue(currentTrackIndex)[0];
+  }
+  let prevIndex = currentTrackIndex - 1;
+  if (prevIndex < 0) prevIndex = tracks.length - 1;
+  return prevIndex;
+}
+
+btnRewind.addEventListener('click', () => {
+  loadTrack(getPrevIndex(), true);
+});
+btnForward.addEventListener('click', () => {
+  loadTrack(getNextIndex(), true);
+});
+audioTrack.addEventListener('ended', () => {
+  loadTrack(getNextIndex(), true);
+});
+audioTrack.addEventListener('timeupdate', () => {
+  if (!isSeeking) {
+    const pct = (audioTrack.currentTime / audioTrack.duration) * 100;
+    progressBar.value = pct || 0;
+  }
+  timeCurrent.textContent = formatTime(audioTrack.currentTime);
+  if (audioTrack.duration) timeTotal.textContent = formatTime(audioTrack.duration);
+});
+progressBar.addEventListener('input', () => { isSeeking = true; });
+progressBar.addEventListener('change', () => {
+  const newTime = (progressBar.value / 100) * audioTrack.duration;
+  audioTrack.currentTime = newTime;
+  isSeeking = false;
+  updateKaraokeAndPainting(newTime);
+});
+volumeBar.addEventListener('input', () => {
+  audioTrack.volume = volumeBar.value / 100;
+  audioTrack.volume === 0 ? muteAudio() : unmuteAudio();
+});
+function muteAudio() { audioTrack.muted = true; volumeIcon.classList.add('hidden'); muteIcon.classList.remove('hidden'); }
+function unmuteAudio() { audioTrack.muted = false; volumeIcon.classList.remove('hidden'); muteIcon.classList.add('hidden'); }
+btnMute.addEventListener('click', () => audioTrack.muted ? unmuteAudio() : muteAudio());
+
+function initKaraoke() {
+  lyricsWindow.innerHTML = '';
+  lyricsUserScrolling = false;
+  clearTimeout(lyricsUserScrollTimer);
+  if (lyricsScrollBox) lyricsScrollBox.scrollTop = 0;
+  if (!lyricsData.length) {
+    lyricsWindow.innerHTML = `<p class="text-center text-white/40 text-sm italic px-8 leading-relaxed">
+      La letra de esta canción está por llegar...<br>pronto la sincronizamos juntos 💗
+    </p>`;
+    return;
+  }
+  lyricsData.forEach((line, index) => {
+    const lineDiv = document.createElement('div');
+    lineDiv.id = `lyric-${index}`;
+    lineDiv.className = `lyric-line cursor-pointer text-center py-4 px-4 rounded-2xl border border-transparent hover:bg-white/5 active:scale-[0.99] transition-all duration-300`;
+    const translationHtml = line.translation
+      ? `<p class="text-xs sm:text-sm font-normal italic mt-1"><span class="paint-text-sub" id="kr-t-${index}">${line.translation}</span></p>`
+      : '';
+    lineDiv.innerHTML = `<p class="text-lg sm:text-2xl font-bold"><span class="paint-text" id="kr-${index}">${line.text}</span></p>${translationHtml}`;
+    lineDiv.addEventListener('click', () => {
+      audioTrack.currentTime = line.start;
+      playAudio();
+      spawnBurstHeartsAt(lineDiv);
+    });
+    lyricsWindow.appendChild(lineDiv);
+  });
+}
+
+// ===== Scroll de la letra contenido SOLO dentro de su propia caja =====
+// (antes usaba scrollIntoView, que a veces arrastraba toda la página)
+const lyricsScrollBox = document.getElementById('lyrics-scroll-box');
+let lyricsUserScrolling = false;
+let lyricsUserScrollTimer = null;
+
+['touchstart', 'wheel', 'mousedown'].forEach((evt) => {
+  lyricsScrollBox.addEventListener(evt, () => {
+    lyricsUserScrolling = true;
+    clearTimeout(lyricsUserScrollTimer);
+    lyricsUserScrollTimer = setTimeout(() => { lyricsUserScrolling = false; }, 4500);
+  }, { passive: true });
+});
+
+function scrollLyricIntoView(el) {
+  if (!el || !lyricsScrollBox || lyricsUserScrolling) return;
+  const elRect = el.getBoundingClientRect();
+  const boxRect = lyricsScrollBox.getBoundingClientRect();
+  const offset = (elRect.top - boxRect.top) + lyricsScrollBox.scrollTop - (lyricsScrollBox.clientHeight / 2) + (elRect.height / 2);
+  lyricsScrollBox.scrollTo({ top: offset, behavior: 'smooth' });
+}
+
+function updateKaraokeAndPainting(currentTime) {
+  if (!lyricsData.length) return;
+  let currentLineIndex = -1;
+  for (let i = 0; i < lyricsData.length; i++) {
+    if (currentTime >= lyricsData[i].start && (i === lyricsData.length - 1 || currentTime < lyricsData[i + 1].start)) {
+      currentLineIndex = i; break;
+    }
+  }
+  if (currentLineIndex !== -1) {
+    if (currentLineIndex !== activeLineIndex) {
+      if (activeLineIndex !== -1) {
+        const prevEl = document.getElementById(`lyric-${activeLineIndex}`);
+        if (prevEl) { prevEl.classList.remove('active'); setPaintingProgress(activeLineIndex, '100%'); }
+      }
+      activeLineIndex = currentLineIndex;
+      const activeEl = document.getElementById(`lyric-${activeLineIndex}`);
+      if (activeEl) {
+        activeEl.classList.add('active');
+        scrollLyricIntoView(activeEl);
+        spawnHeartFromVinyl();
+      }
+    }
+    const line = lyricsData[currentLineIndex];
+    const duration = line.end - line.start;
+    const elapsed = currentTime - line.start;
+    let percent = duration > 0 ? (elapsed / duration) * 100 : 0;
+    percent = Math.max(0, Math.min(100, percent));
+    setPaintingProgress(currentLineIndex, `${percent}%`);
+    for (let i = 0; i < currentLineIndex; i++) setPaintingProgress(i, '100%');
+    for (let i = currentLineIndex + 1; i < lyricsData.length; i++) setPaintingProgress(i, '0%');
+  }
+}
+
+function setPaintingProgress(index, value) {
+  const krSpan = document.getElementById(`kr-${index}`);
+  if (krSpan) krSpan.style.setProperty('--paint-progress', value);
+  const krSubSpan = document.getElementById(`kr-t-${index}`);
+  if (krSubSpan) krSubSpan.style.setProperty('--paint-progress-sub', value);
+}
+
+// =================== MENSAJE / CARTA ===================
+const noteModal = document.getElementById('note-modal');
+const noteCard = document.getElementById('note-card');
+const noteText = document.getElementById('note-text');
+const btnOpenNote = document.getElementById('btn-open-note');
+const btnCloseNote = document.getElementById('btn-close-note');
+let typeTimer = null;
+
+function typeWriteNote() {
+  clearTimeout(typeTimer);
+  noteText.textContent = '';
+  noteText.classList.add('typewrite');
+  let i = 0;
+  function step() {
+    if (i <= LOVE_NOTE.length) {
+      noteText.textContent = LOVE_NOTE.slice(0, i);
+      i++;
+      typeTimer = setTimeout(step, 18);
+    } else {
+      noteText.classList.remove('typewrite');
+    }
+  }
+  step();
+}
+
+function openNote() {
+  noteModal.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    noteModal.style.opacity = '1';
+    noteCard.style.opacity = '1';
+    noteCard.style.transform = 'scale(1)';
+  });
+  typeWriteNote();
+}
+function closeNote() {
+  noteModal.style.opacity = '0';
+  noteCard.style.opacity = '0';
+  noteCard.style.transform = 'scale(0.9)';
+  clearTimeout(typeTimer);
+  setTimeout(() => noteModal.classList.add('hidden'), 400);
+}
+btnOpenNote.addEventListener('click', openNote);
+btnCloseNote.addEventListener('click', closeNote);
+noteModal.addEventListener('click', (e) => { if (e.target === noteModal) closeNote(); });
+
+// ===== Segunda cartita =====
+const noteModal2 = document.getElementById('note-modal-2');
+const noteCard2 = document.getElementById('note-card-2');
+const noteText2 = document.getElementById('note-text-2');
+const btnOpenNote2 = document.getElementById('btn-open-note-2');
+const btnCloseNote2 = document.getElementById('btn-close-note-2');
+let typeTimer2 = null;
+
+function typeWriteNote2() {
+  clearTimeout(typeTimer2);
+  noteText2.textContent = '';
+  noteText2.classList.add('typewrite');
+  let i = 0;
+  function step() {
+    if (i <= LOVE_NOTE_2.length) {
+      noteText2.textContent = LOVE_NOTE_2.slice(0, i);
+      i++;
+      typeTimer2 = setTimeout(step, 18);
+    } else {
+      noteText2.classList.remove('typewrite');
+    }
+  }
+  step();
+}
+
+function openNote2() {
+  noteModal2.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    noteModal2.style.opacity = '1';
+    noteCard2.style.opacity = '1';
+    noteCard2.style.transform = 'scale(1)';
+  });
+  typeWriteNote2();
+}
+function closeNote2() {
+  noteModal2.style.opacity = '0';
+  noteCard2.style.opacity = '0';
+  noteCard2.style.transform = 'scale(0.9)';
+  clearTimeout(typeTimer2);
+  setTimeout(() => noteModal2.classList.add('hidden'), 400);
+}
+btnOpenNote2.addEventListener('click', openNote2);
+btnCloseNote2.addEventListener('click', closeNote2);
+noteModal2.addEventListener('click', (e) => { if (e.target === noteModal2) closeNote2(); });
+
+// ===== Tercera cartita =====
+const noteModal3 = document.getElementById('note-modal-3');
+const noteCard3 = document.getElementById('note-card-3');
+const noteText3 = document.getElementById('note-text-3');
+const btnOpenNote3 = document.getElementById('btn-open-note-3');
+const btnCloseNote3 = document.getElementById('btn-close-note-3');
+let typeTimer3 = null;
+
+function typeWriteNote3() {
+  clearTimeout(typeTimer3);
+  noteText3.textContent = '';
+  noteText3.classList.add('typewrite');
+  let i = 0;
+  function step() {
+    if (i <= LOVE_NOTE_3.length) {
+      noteText3.textContent = LOVE_NOTE_3.slice(0, i);
+      i++;
+      typeTimer3 = setTimeout(step, 18);
+    } else {
+      noteText3.classList.remove('typewrite');
+    }
+  }
+  step();
+}
+
+function openNote3() {
+  noteModal3.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    noteModal3.style.opacity = '1';
+    noteCard3.style.opacity = '1';
+    noteCard3.style.transform = 'scale(1)';
+  });
+  typeWriteNote3();
+}
+function closeNote3() {
+  noteModal3.style.opacity = '0';
+  noteCard3.style.opacity = '0';
+  noteCard3.style.transform = 'scale(0.9)';
+  clearTimeout(typeTimer3);
+  setTimeout(() => noteModal3.classList.add('hidden'), 400);
+}
+btnOpenNote3.addEventListener('click', openNote3);
+btnCloseNote3.addEventListener('click', closeNote3);
+noteModal3.addEventListener('click', (e) => { if (e.target === noteModal3) closeNote3(); });
+
+// ===== Cuarta cartita =====
+const noteModal4 = document.getElementById('note-modal-4');
+const noteCard4 = document.getElementById('note-card-4');
+const noteText4 = document.getElementById('note-text-4');
+const btnOpenNote4 = document.getElementById('btn-open-note-4');
+const btnCloseNote4 = document.getElementById('btn-close-note-4');
+let typeTimer4 = null;
+
+function typeWriteNote4() {
+  clearTimeout(typeTimer4);
+  noteText4.textContent = '';
+  noteText4.classList.add('typewrite');
+  let i = 0;
+  function step() {
+    if (i <= LOVE_NOTE_4.length) {
+      noteText4.textContent = LOVE_NOTE_4.slice(0, i);
+      i++;
+      typeTimer4 = setTimeout(step, 18);
+    } else {
+      noteText4.classList.remove('typewrite');
+    }
+  }
+  step();
+}
+
+function openNote4() {
+  noteModal4.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    noteModal4.style.opacity = '1';
+    noteCard4.style.opacity = '1';
+    noteCard4.style.transform = 'scale(1)';
+  });
+  typeWriteNote4();
+}
+function closeNote4() {
+  noteModal4.style.opacity = '0';
+  noteCard4.style.opacity = '0';
+  noteCard4.style.transform = 'scale(0.9)';
+  clearTimeout(typeTimer4);
+  setTimeout(() => noteModal4.classList.add('hidden'), 400);
+}
+btnOpenNote4.addEventListener('click', openNote4);
+btnCloseNote4.addEventListener('click', closeNote4);
+noteModal4.addEventListener('click', (e) => { if (e.target === noteModal4) closeNote4(); });
+
+// ===== Quinta cartita =====
+const noteModal5 = document.getElementById('note-modal-5');
+const noteCard5 = document.getElementById('note-card-5');
+const noteText5 = document.getElementById('note-text-5');
+const btnOpenNote5 = document.getElementById('btn-open-note-5');
+const btnCloseNote5 = document.getElementById('btn-close-note-5');
+let typeTimer5 = null;
+
+function typeWriteNote5() {
+  clearTimeout(typeTimer5);
+  noteText5.textContent = '';
+  noteText5.classList.add('typewrite');
+  let i = 0;
+  function step() {
+    if (i <= LOVE_NOTE_5.length) {
+      noteText5.textContent = LOVE_NOTE_5.slice(0, i);
+      i++;
+      typeTimer5 = setTimeout(step, 18);
+    } else {
+      noteText5.classList.remove('typewrite');
+    }
+  }
+  step();
+}
+
+function openNote5() {
+  noteModal5.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    noteModal5.style.opacity = '1';
+    noteCard5.style.opacity = '1';
+    noteCard5.style.transform = 'scale(1)';
+  });
+  typeWriteNote5();
+}
+function closeNote5() {
+  noteModal5.style.opacity = '0';
+  noteCard5.style.opacity = '0';
+  noteCard5.style.transform = 'scale(0.9)';
+  clearTimeout(typeTimer5);
+  setTimeout(() => noteModal5.classList.add('hidden'), 400);
+}
+btnOpenNote5.addEventListener('click', openNote5);
+btnCloseNote5.addEventListener('click', closeNote5);
+noteModal5.addEventListener('click', (e) => { if (e.target === noteModal5) closeNote5(); });
+
+// =================== CANVAS DE CORAZONES ===================
+const canvas = document.getElementById('heartCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const preCanvas = document.createElement('canvas');
+preCanvas.width = 100;
+preCanvas.height = 100;
+const pctx = preCanvas.getContext('2d');
+function createPreHeart() {
+  const x = 50, y = 18, size = 64;
+  const topCurveHeight = size * 0.3;
+  pctx.beginPath();
+  pctx.moveTo(x, y + topCurveHeight);
+  pctx.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + topCurveHeight);
+  pctx.bezierCurveTo(x - size / 2, y + (size + topCurveHeight) / 2, x, y + (size + topCurveHeight) / 2, x, y + size);
+  pctx.bezierCurveTo(x, y + (size + topCurveHeight) / 2, x + size / 2, y + (size + topCurveHeight) / 2, x + size / 2, y + topCurveHeight);
+  pctx.bezierCurveTo(x + size / 2, y, x, y, x, y + topCurveHeight);
+  pctx.closePath();
+  pctx.fillStyle = '#fff';
+  pctx.fill();
+}
+createPreHeart();
+
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+class Particle {
+  constructor(x, y, isExplosion = false) {
+    this.x = x; this.y = y;
+    this.size = Math.random() * (isExplosion ? 22 : 34) + 13;
+    this.speedX = isExplosion ? (Math.random() - 0.5) * 6 : (Math.random() - 0.5) * 1.4;
+    this.speedY = isExplosion ? (Math.random() - 0.5) * 6 : -Math.random() * 1.4 - 0.5;
+    this.rotation = (Math.random() - 0.5) * 0.6;
+    this.rotSpeed = (Math.random() - 0.5) * 0.03;
+    const hue = 320 + Math.random() * 45;
+    const light = 62 + Math.random() * 20;
+    this.color = `hsla(${hue}, 88%, ${light}%, `;
+    this.isExplosion = isExplosion;
+    this.life = 1;
+    this.decay = Math.random() * 0.02 + 0.01;
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.globalAlpha = this.isExplosion ? this.life : 0.85;
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.drawImage(preCanvas, -this.size/2, -this.size/2, this.size, this.size);
+    ctx.globalCompositeOperation = "source-atop";
+    ctx.fillStyle = this.color + (this.isExplosion ? this.life : 0.85) + ')';
+    ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+
+    ctx.restore();
+  }
+  update() {
+    this.x += this.speedX; this.y += this.speedY;
+    this.rotation += this.rotSpeed;
+    if (this.isExplosion) { this.life -= this.decay; }
+    else { this.speedX += Math.sin(Date.now() / 1000 + this.size) * 0.01; }
+  }
+}
+
+function handleParticles() {
+  if (!reduceMotion && particles.length < 26 && Math.random() < 0.035) {
+    particles.push(new Particle(Math.random() * canvas.width, canvas.height + 20, false));
+  }
+  for (let i = 0; i < particles.length; i++) {
+    particles[i].update();
+    if(particles[i].x > -50 && particles[i].x < canvas.width + 50 && particles[i].y > -50) {
+        particles[i].draw();
+    }
+    if (particles[i].y < -40 || (particles[i].isExplosion && particles[i].life <= 0)) {
+      particles.splice(i, 1); i--;
+    }
+  }
+}
+
+window.addEventListener('click', (e) => {
+  if (e.target.closest('button') || e.target.closest('input') || e.target.closest('#wax-seal')) return;
+  for (let i = 0; i < 6; i++) particles.push(new Particle(e.clientX, e.clientY, true));
+});
+window.addEventListener('touchstart', (e) => {
+  if (e.target.closest('button') || e.target.closest('input') || e.target.closest('#wax-seal')) return;
+  const touch = e.touches[0];
+  for (let i = 0; i < 6; i++) particles.push(new Particle(touch.clientX, touch.clientY, true));
+});
+
+function spawnBurstHeartsAt(element) {
+  const rect = element.getBoundingClientRect();
+  const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+  for (let i = 0; i < 6; i++) particles.push(new Particle(x, y, true));
+}
+function spawnHeartFromVinyl() {
+  const rect = vinylDisc.getBoundingClientRect();
+  const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+  for (let i = 0; i < 3; i++) {
+    const p = new Particle(x, y, true);
+    p.speedY = -Math.random() * 3 - 2;
+    particles.push(p);
+  }
+}
+
+function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); handleParticles(); requestAnimationFrame(animate); }
+window.onload = function () { animate(); };
+
+// =================== EDITOR DE SINCRONIZACIÓN ===================
+const EDITOR_MODE = true;
+const btnEditorToggle = document.getElementById('btn-editor-toggle');
+const editorPanel = document.getElementById('editor-panel');
+const btnEditorClose = document.getElementById('btn-editor-close');
+const editorTrackSelect = document.getElementById('editor-track-select');
+const editorStepPaste = document.getElementById('editor-step-paste');
+const editorStepSync = document.getElementById('editor-step-sync');
+const editorLyricsInput = document.getElementById('editor-lyrics-input');
+const btnEditorLoad = document.getElementById('btn-editor-load');
+const editorPlayPause = document.getElementById('editor-play-pause');
+const editorCurrentTime = document.getElementById('editor-current-time');
+const editorMarkLine = document.getElementById('editor-mark-line');
+const editorUndo = document.getElementById('editor-undo');
+const editorLinesList = document.getElementById('editor-lines-list');
+const btnEditorGenerate = document.getElementById('btn-editor-generate');
+const editorOutputWrap = document.getElementById('editor-output-wrap');
+const editorOutput = document.getElementById('editor-output');
+const btnEditorCopy = document.getElementById('btn-editor-copy');
+const btnEditorPreview = document.getElementById('btn-editor-preview');
+
+let editorLines = []; 
+let editorPointer = 0;
+
+if (EDITOR_MODE) {
+  btnEditorToggle.classList.remove('hidden');
+  editorTrackSelect.innerHTML = tracks.map((t, i) => `<option value="${i}">${i + 1}. ${t.title} — ${t.artist}</option>`).join('');
+}
+
+btnEditorToggle.addEventListener('click', () => {
+  editorPanel.classList.remove('hidden');
+  const idx = parseInt(editorTrackSelect.value || 0);
+  if (currentTrackIndex !== idx && playerScreen.classList.contains('hidden') === false) {
+    //
+  }
+});
+btnEditorClose.addEventListener('click', () => editorPanel.classList.add('hidden'));
+
+editorTrackSelect.addEventListener('change', () => {
+  loadTrack(parseInt(editorTrackSelect.value), false);
+});
+
+btnEditorLoad.addEventListener('click', () => {
+  const raw = editorLyricsInput.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  if (!raw.length) return;
+  editorLines = raw.map(text => ({ text, start: null, end: null }));
+  editorPointer = 0;
+  editorStepPaste.classList.add('hidden');
+  editorStepSync.classList.remove('hidden');
+  editorOutputWrap.classList.add('hidden');
+  renderEditorLines();
+  const idx = parseInt(editorTrackSelect.value || 0);
+  loadTrack(idx, false);
+});
+
+function renderEditorLines() {
+  editorLinesList.innerHTML = '';
+  editorLines.forEach((line, i) => {
+    const row = document.createElement('div');
+    const isCurrent = i === editorPointer;
+    row.className = `flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-xs ${isCurrent ? 'font-bold' : 'text-white/60'}`;
+    row.style.background = isCurrent ? 'rgba(255,79,129,0.18)' : 'transparent';
+    row.style.color = isCurrent ? 'var(--rosa-soft)' : '';
+    row.innerHTML = `
+      <span class="truncate flex-1">${i + 1}. ${line.text}</span>
+      <span class="font-mono text-[10px] shrink-0">${line.start !== null ? formatTime(line.start) : '—'}</span>
+    `;
+    row.addEventListener('click', () => {
+      editorPointer = i;
+      renderEditorLines();
+    });
+    editorLinesList.appendChild(row);
+  });
+}
+
+editorPlayPause.addEventListener('click', () => {
+  if (audioTrack.paused) {
+    playAudio();
+    editorPlayPause.textContent = '⏸ Pausar';
+  } else {
+    pauseAudio();
+    editorPlayPause.textContent = '▶ Reproducir';
+  }
+});
+
+audioTrack.addEventListener('timeupdate', () => {
+  if (!editorPanel.classList.contains('hidden')) {
+    editorCurrentTime.textContent = formatTime(audioTrack.currentTime);
+  }
+});
+
+editorMarkLine.addEventListener('click', () => {
+  if (editorPointer >= editorLines.length) return;
+  const t = audioTrack.currentTime;
+  editorLines[editorPointer].start = t;
+  if (editorPointer > 0) editorLines[editorPointer - 1].end = t;
+  editorPointer++;
+  if (editorPointer >= editorLines.length) editorPointer = editorLines.length - 1;
+  renderEditorLines();
+  spawnBurstHeartsAt(editorMarkLine);
+});
+
+editorUndo.addEventListener('click', () => {
+  if (editorPointer > 0) {
+    editorPointer--;
+    editorLines[editorPointer].start = null;
+    if (editorPointer > 0) editorLines[editorPointer - 1].end = null;
+    renderEditorLines();
+  }
+});
+
+btnEditorGenerate.addEventListener('click', () => {
+  if (editorLines.some(l => l.start === null)) {
+    alert('Todavía faltan líneas por marcar.');
+    return;
+  }
+  const last = editorLines[editorLines.length - 1];
+  if (last.end === null) last.end = audioTrack.duration || last.start + 3;
+  const code = editorLines.map(l =>
+    `      { start: ${l.start.toFixed(2)}, end: ${l.end.toFixed(2)}, text: '${l.text.replace(/'/g, "\\'")}' },`
+  ).join('\n');
+  editorOutput.value = code;
+  editorOutputWrap.classList.remove('hidden');
+});
+
+btnEditorCopy.addEventListener('click', () => {
+  editorOutput.select();
+  navigator.clipboard?.writeText(editorOutput.value).then(() => {
+    btnEditorCopy.textContent = '¡Copiado! ✅';
+    setTimeout(() => btnEditorCopy.textContent = 'Copiar código', 1500);
+  }).catch(() => document.execCommand('copy'));
+});
+
+btnEditorPreview.addEventListener('click', () => {
+  if (editorLines.every(l => l.start === null)) return;
+  const previewData = editorLines
+    .filter(l => l.start !== null)
+    .map((l, i, arr) => ({
+      start: l.start,
+      end: l.end !== null ? l.end : (arr[i + 1] ? arr[i + 1].start : l.start + 3),
+      text: l.text
+    }));
+  lyricsData = previewData;
+  activeLineIndex = -1;
+  initKaraoke();
+  editorPanel.classList.add('hidden');
+});
+
+</script>
+</body>
+</html>
